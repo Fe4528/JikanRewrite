@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "discord.js": "^14.24.2"
+    "discord.js": "^14.24.2",
+    "mysql2": "^3.15.3"
   }
 }
