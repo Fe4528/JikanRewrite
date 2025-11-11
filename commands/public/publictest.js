@@ -5,6 +5,7 @@ module.exports = {
     .setName('publictest')
     .setDescription('public test'),
     async run(discord, client, interaction) {
-        interaction.reply("public test");
+        const res = await interaction.database.getUser(interaction.user.id);
+        interaction.reply(`\`\`\`\nUser Info:\n\nUsername: ${res.user_name}\nUser ID: ${res.user_id}\nVC Time: ${res.vc_time}\nIs Hidden: ${res.is_hidden}\n\`\`\``);
     }
 }
