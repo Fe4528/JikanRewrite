@@ -1,3 +1,23 @@
+const { WebhookClient } = require("discord.js")
+const webhook = new WebhookClient({
+    url: process.env.DEVHOOK_URL
+})
+class JikanDBError extends Error {
+    constructor(msg, reason) {
+        super(msg);
+
+        this.name = "JikanDBError";
+        this.date = new Date();
+        this.reason = `${this.name}: ${this.reason}`;
+
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
+
+module.exports.JikanDBError = JikanDBError;
 module.exports.is_devcommand = (command, dev_list) => {
     return dev_list.includes(command) ? true : false
+}
+module.exports.dev_log = (payload) => {
+    webhook.send(payload);
 }
