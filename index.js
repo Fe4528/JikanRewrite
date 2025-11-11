@@ -6,7 +6,8 @@ const { REST, Routes } = require('discord.js');
 const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
 const { is_devcommand } = require('./utils.js')
 const discord = require('discord.js')
-
+const jmysql = require('./jikan_mysql_manager.js');
+const db = new jmysql();
 
 /////
 const commands_array = [];
@@ -53,6 +54,7 @@ client.on(discord.Events.InteractionCreate, async interaction => {
             module = require(`./commands/public/${interaction.commandName}.js`)
         }
 
+        interaction.database = db;
         module.run(discord, client, interaction);
     }
 })
