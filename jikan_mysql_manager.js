@@ -1,12 +1,28 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
+const { JikanDBError, dev_log } = require('./utils.js')
 
 class MySQLDatabase {
-    constructor(connection_info) {
-        this.connection = mysql.createConnection({
-            host: process.env.MYSQL_ENDPOINT,
-            user: process.env.MYSQL_USER,
-            password: process.env.MYSQL_PASSWORD
-        })
+    constructor() {
+        (async() => {
+            this.connection = await mysql.createConnection({
+                host: process.env.MYSQL_ENDPOINT,
+                user: process.env.MYSQL_USER,
+                password: process.env.MYSQL_PASSWORD,
+                database: process.env.MYSQL_DBNAME
+            })
+        })();
+    }
+    
+    async getUser(parameter) {
+        const [row, field] = await this.connection.query('select * from `JikanUsers` where `user_id` = (?)', [parameter]);
+
+        return row[0];
+    }
+
+    async getTableNames() {
+        const [row, fields] = await this.connection.query('select table_name from information_schema.tables where table_schema = \'s26417_NewDB\'');
+
+        return row;
     }
 }
 
