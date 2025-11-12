@@ -15,7 +15,7 @@ class MySQLDatabase {
     async getUser(parameter) {
         const [row, field] = await this.connection.query('select * from `JikanUsers` where `user_id` = (?)', [parameter]);
 
-        return row[0];
+        return row.length > 0 ? row[0] : null;
     }
 
     async getTableNames() {
@@ -25,7 +25,9 @@ class MySQLDatabase {
     }
 
     async createUser(params) {
-        // test
+        if (this.getUser(params.id)) {
+            return "Already exists"
+        }
     }
 }
 
