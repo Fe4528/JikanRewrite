@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 class MySQLDatabase {
     constructor() {
         (async() => {
-            this.connection = await mysql.createConnection({
+            this.connection = await mysql.createPool({
                 host: process.env.MYSQL_ENDPOINT,
                 user: process.env.MYSQL_USER,
                 password: process.env.MYSQL_PASSWORD,
