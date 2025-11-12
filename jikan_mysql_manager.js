@@ -1,5 +1,4 @@
 const mysql = require('mysql2/promise');
-const { JikanDBError, dev_log } = require('./utils.js')
 
 class MySQLDatabase {
     constructor() {
@@ -23,6 +22,10 @@ class MySQLDatabase {
         const [row, fields] = await this.connection.query('select table_name from information_schema.tables where table_schema = \'s26417_NewDB\'');
 
         return row;
+    }
+
+    async createUser(params) {
+        // test
     }
 }
 
