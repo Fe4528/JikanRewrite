@@ -40,6 +40,8 @@ const client = new discord.Client({
     intents: [discord.GatewayIntentBits.Guilds, discord.GatewayIntentBits.GuildVoiceStates]
 });
 
+client.database = db;
+
 client.on(discord.Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
         let module;
@@ -54,7 +56,6 @@ client.on(discord.Events.InteractionCreate, async interaction => {
             module = require(`./commands/public/${interaction.commandName}.js`)
         }
 
-        interaction.database = db;
         module.run(discord, client, interaction);
     }
 })
