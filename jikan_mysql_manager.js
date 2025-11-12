@@ -7,7 +7,10 @@ class MySQLDatabase {
                 host: process.env.MYSQL_ENDPOINT,
                 user: process.env.MYSQL_USER,
                 password: process.env.MYSQL_PASSWORD,
-                database: process.env.MYSQL_DBNAME
+                database: process.env.MYSQL_DBNAME,
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0
             })
         })();
     }
