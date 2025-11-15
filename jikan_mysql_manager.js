@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const { JikanDBError } = require('./utils.js')
 
 class MySQLDatabase {
     constructor() {
@@ -14,11 +15,33 @@ class MySQLDatabase {
             })
         })();
     }
-    
-    async getUser(parameter) {
-        const [row, field] = await this.connection.query('select * from `JikanUsers` where `user_id` = (?)', [parameter]);
 
-        return row.length > 0 ? row[0] : null;
+    // TYPES OF SCOPE:
+    //
+    // GLOBAL
+    // LOCAL
+    // TEMP
+
+    async getUser(parameter) {
+        let res;
+        let tableName;
+
+        switch(parameter.scope) {
+            case "GLOBAL":
+                tableName = "JikanGlobalLeaderboard";
+                break;
+            case "LOCAL":
+                tableName = "JikanGuildLeaderboard_" + parameter.guild_id;
+                break;
+            case "TEMP":
+                tableName = "JikanGuildLeaderboardTemp_" + parameter.guild_id;
+            default:
+                return new JikanDBError("Invalid scope.");
+        }
+        
+        res = await this.connection.query('select * from `'+ tableName +'` where `user_id` = (?)', [parameter.id]);
+        
+        return res[0].length > 0 ? res[0] : new JikanDBError(`User with ID: ${parameter.id} is not found.\nDB_SCOPE is ${parameter.scope}.\nRequested from ${parameter.guild_id}`);
     }
 
     async getTableNames() {
@@ -29,7 +52,7 @@ class MySQLDatabase {
 
     async createUser(params) {
         if (this.getUser(params.id)) {
-            return "Already exists"
+            throw new JikanDBError('This user exists already');
         }
     }
 }

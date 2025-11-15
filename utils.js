@@ -3,14 +3,16 @@ const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
 })
 class JikanDBError extends Error {
-    constructor(msg, reason) {
+    constructor(msg) {
         super(msg);
 
         this.name = "JikanDBError";
         this.date = new Date();
-        this.reason = `${this.name}: ${this.reason}`;
+        this.reason = `${this.name}: ${msg}`;
 
-        Error.captureStackTrace(this, this.constructor);
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, JikanDBError);
+        }
     }
 }
 
@@ -20,4 +22,7 @@ module.exports.is_devcommand = (command, dev_list) => {
 }
 module.exports.dev_log = (payload) => {
     webhook.send(payload);
+}
+module.exports.code_block = (txt) => {
+    return '```\n'+txt+'\n```'
 }
