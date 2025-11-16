@@ -37,12 +37,12 @@ for (let file of command_files) {
 /////
 
 const client = new discord.Client({
-    intents: [discord.GatewayIntentBits.Guilds, discord.GatewayIntentBits.GuildVoiceStates]
+    intents: ['Guilds', 'GuildVoiceStates']
 });
 
 client.database = db;
 
-client.on(discord.Events.InteractionCreate, async interaction => {
+client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
         let module;
         
@@ -60,7 +60,7 @@ client.on(discord.Events.InteractionCreate, async interaction => {
     }
 })
 
-client.on(discord.Events.ClientReady, async ls => {
+client.on('ready', async ls => {
     //refresh_modules()
     try {
         await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
@@ -72,6 +72,8 @@ client.on(discord.Events.ClientReady, async ls => {
         console.log(err)
     }
 })
+
+client.on('voiceStateUpdate')
 
 client.login(process.env.BOT_TOKEN).then(async() => {
     console.log("Online")
