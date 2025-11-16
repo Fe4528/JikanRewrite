@@ -17,12 +17,15 @@ class JikanDBError extends Error {
 }
 
 module.exports.JikanDBError = JikanDBError;
+
 module.exports.is_devcommand = (command, dev_list) => {
     return dev_list.includes(command) ? true : false
 }
+
 module.exports.dev_log = (payload) => {
     webhook.send(payload);
 }
+
 module.exports.code_block = (txt) => {
     return '```\n'+txt+'\n```'
 }

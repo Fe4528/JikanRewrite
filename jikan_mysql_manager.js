@@ -12,8 +12,10 @@ class MySQLDatabase {
                 waitForConnections: true,
                 connectionLimit: 10,
                 queueLimit: 0
-            })
+            });
         })();
+
+        
     }
 
     // TYPES OF SCOPE:
@@ -22,26 +24,26 @@ class MySQLDatabase {
     // LOCAL
     // TEMP
 
-    async getUser(parameter) {
+    async getUser(params) {
         let res;
         let tableName;
 
-        switch(parameter.scope) {
+        switch(params.scope) {
             case "GLOBAL":
                 tableName = "JikanGlobalLeaderboard";
                 break;
             case "LOCAL":
-                tableName = "JikanGuildLeaderboard_" + parameter.guild_id;
+                tableName = "JikanGuildLeaderboard_" + params.guild_id;
                 break;
             case "TEMP":
-                tableName = "JikanGuildLeaderboardTemp_" + parameter.guild_id;
+                tableName = "JikanGuildLeaderboardTemp_" + params.guild_id;
             default:
                 return new JikanDBError("Invalid scope.");
         }
         
-        res = await this.connection.query('select * from `'+ tableName +'` where `user_id` = (?)', [parameter.id]);
+        res = await this.connection.query('select * from `'+ tableName +'` where `user_id` = (?)', [params.id]);
         
-        return res[0].length > 0 ? res[0] : new JikanDBError(`User with ID: ${parameter.id} is not found.\nDB_SCOPE is ${parameter.scope}.\nRequested from ${parameter.guild_id}`);
+        return res[0].length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.scope}.\nRequested from ${params.guild_id}`);
     }
 
     async getTableNames() {
@@ -54,6 +56,10 @@ class MySQLDatabase {
         if (this.getUser(params.id)) {
             throw new JikanDBError('This user exists already');
         }
+    }
+
+    async updateUserTime(params) {
+        
     }
 }
 

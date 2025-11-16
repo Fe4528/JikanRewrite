@@ -8,6 +8,7 @@ const { is_devcommand } = require('./utils.js')
 const discord = require('discord.js')
 const jmysql = require('./jikan_mysql_manager.js');
 const db = new jmysql();
+const voice_update_module = require('./events/voice_update.js')
 
 /////
 const commands_array = [];
@@ -60,7 +61,7 @@ client.on('interactionCreate', async interaction => {
     }
 })
 
-client.on('ready', async ls => {
+client.on('clientReady', async ls => {
     //refresh_modules()
     try {
         await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
@@ -73,7 +74,14 @@ client.on('ready', async ls => {
     }
 })
 
-client.on('voiceStateUpdate')
+client.on('voiceStateUpdate', async (os, ns) => {
+    if (!os && !ns) return;
+    if (ns.member.user.bot) return;
+
+    if (os.channel !== ns.channel) {
+        voice_update_module.changeDetected(os, ns, client)
+    }
+})
 
 client.login(process.env.BOT_TOKEN).then(async() => {
     console.log("Online")

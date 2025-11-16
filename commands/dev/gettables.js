@@ -1,4 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js')
+const { SlashCommandBuilder } = require('discord.js');
+const { code_block } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,6 +9,6 @@ module.exports = {
         const tables = await client.database.getTableNames();
         const msgtosend = tables.map((obj) => obj.table_name).join("\n");
 
-        interaction.reply(`\`\`\`\n${msgtosend}\n\`\`\``);
+        interaction.reply(code_block(msgtosend));
     }
 }
