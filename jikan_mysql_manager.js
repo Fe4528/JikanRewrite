@@ -59,10 +59,6 @@ class MySQLDatabase {
     }
 
     async updateUserTime(params) {
-        switch(params.scope) {
-            case
-        }
-
         await this.connection.execute('')
     }
 }
