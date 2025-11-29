@@ -59,6 +59,7 @@ class MySQLDatabase {
     }
 
     async updateUserTime(params) {
+        // if no global and local
         await this.connection.execute('')
     }
 }
