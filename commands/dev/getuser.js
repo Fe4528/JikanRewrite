@@ -14,7 +14,7 @@ module.exports = {
         const res = await client.database.getUser({
             id: interaction.options.getString("user_id").trim(),
             guild_id: interaction.guild.id,
-            scope: "GLOBAL"
+            type: "GLOBAL"
         });
             
         if (res instanceof JikanDBError) {
