@@ -24,43 +24,88 @@ class MySQLDatabase {
     // LOCAL
     // TEMP
 
-    async getUser(params) {
-        let res;
-        let tableName;
-
-        switch(params.scope) {
+    /**
+    * Get database scope string for use in query
+    * @param {String} type - Type of database
+    * @param {String} id - guild id
+    * @returns string
+    */
+    getLeaderboardScope(type, id) {
+        switch(type) {
             case "GLOBAL":
-                tableName = "JikanGlobalLeaderboard";
-                break;
+                return "JikanGlobalLeaderboard";
             case "LOCAL":
-                tableName = "JikanGuildLeaderboard_" + params.guild_id;
-                break;
+                return "JikanGuildLeaderboard_" + id;
             case "TEMP":
-                tableName = "JikanGuildLeaderboardTemp_" + params.guild_id;
+                return "JikanGuildLeaderboardTemp_" + id;
             default:
-                return new JikanDBError("Invalid scope.");
+                throw new JikanDBError("Invalid scope.");
         }
-        
-        res = await this.connection.query('select * from `'+ tableName +'` where `user_id` = (?)', [params.id]);
+    }
+
+    /**
+     * Get the user in leaderboard
+     * @param {Object} params 
+     * @returns query or JikanDBError
+     */
+    async getUser(params) {
+        let tableName = this.getLeaderboardScope(params.type, params.guild_id)
+    
+        const [res] = await this.connection.query('select * from `(?)` where `user_id` = (?)', [tableName, params.id]);
         
         return res[0].length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.scope}.\nRequested from ${params.guild_id}`);
     }
 
+    /**
+     * 
+     * @returns array of strings
+     */
     async getTableNames() {
-        const [row, fields] = await this.connection.query('select table_name from information_schema.tables where table_schema = \'s26417_NewDB\'');
+        const [row, fields] = await this.connection.query('select table_name from information_schema.tables where table_schema = (?)', [process.env.MYSQL_DBNAME]);
 
         return row;
     }
 
+    /**
+     * Creates a user, if it doesn't exist yet
+     * @param {Object} params 
+     */
     async createUser(params) {
-        if (this.getUser(params.id)) {
-            throw new JikanDBError('This user exists already');
+        if (this.userExists(params.id)) {
+            return new JikanDBError("This user already exists.")
         }
     }
 
+    /**
+     * Check if user with the given ID exists in the database
+     * @param {String} user_id 
+     * @returns true or false
+     */
+    async userExists(user_id) {
+        // Just assume that all user created are in this table
+        const [res] = await this.connection.execute('select user_id from `JikanUser` where user_id = (?)', user_id);
+
+        if (res.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Updates VC Time for a user
+     * @param {Object} params
+     */
     async updateUserTime(params) {
-        // if no global and local
-        await this.connection.execute('')
+        // updates time
+        //
+        // params content:
+        // id: user id
+        // guild_id: guild id
+        // scope: GLOBAL, LOCAL, TEMP
+
+        let tableName = this.getDatabaseScope(params.scope);
+        const [res] = await this.connection.execute('select user_id from `(?)` where user_id = (?)', [tableName, params.id]);
     }
 }
 

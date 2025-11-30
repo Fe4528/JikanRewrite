@@ -19,7 +19,7 @@ class JikanDBError extends Error {
 module.exports.JikanDBError = JikanDBError;
 
 module.exports.is_devcommand = (command, dev_list) => {
-    return dev_list.includes(command) ? true : false
+    return dev_list.includes(command);
 }
 
 module.exports.dev_log = (payload) => {
