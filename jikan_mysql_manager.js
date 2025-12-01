@@ -13,9 +13,7 @@ class MySQLDatabase {
                 connectionLimit: 10,
                 queueLimit: 0
             });
-        })();
-
-        
+        })();  
     }
 
     // TYPES OF SCOPE:
