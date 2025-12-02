@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { JikanDBError, code_block } = require('../../utils');
+const { JikanDBError, code_block, ms_convert } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,6 +21,6 @@ module.exports = {
             return interaction.reply(code_block(res.reason));
         }
 
-        interaction.reply(`\`\`\`\nUser Info:\n\nUsername: ${res.user_name}\nUser ID: ${res.user_id}\nVC Time: ${res.vc_time}\nIs Hidden: ${res.is_hidden}\n\`\`\``);
+        interaction.reply(`\`\`\`\nUser Info:\n\nUsername: ${res.user_name}\nUser ID: ${res.user_id}\nVC Time: ${res.vc_time}ms (${ms_convert(res.vc_time)})\nIs Hidden: ${res.is_hidden}\n\`\`\``);
     }
 }

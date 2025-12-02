@@ -4,11 +4,11 @@ loadEnvFile('.env');
 
 const { REST, Routes } = require('discord.js');
 const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
-const { is_devcommand } = require('./utils.js')
+const { is_devcommand, JikanDBError } = require('./utils.js')
 const discord = require('discord.js')
 const jmysql = require('./jikan_mysql_manager.js');
 const db = new jmysql();
-const voice_update_module = require('./events/voice_update.js')
+const voice_update_module = require('./events/voice_update.js');
 
 /////
 const commands_array = [];
@@ -38,7 +38,7 @@ for (let file of command_files) {
 /////
 
 const client = new discord.Client({
-    intents: ['Guilds', 'GuildVoiceStates']
+    intents: ['Guilds', "GuildVoiceStates"]
 });
 
 client.database = db;
@@ -57,7 +57,14 @@ client.on('interactionCreate', async interaction => {
             module = require(`./commands/public/${interaction.commandName}.js`)
         }
 
-        module.run(discord, client, interaction);
+        try {
+            module.run(discord, client, interaction);
+        } catch (e) {
+            if (e instanceof JikanDBError) {
+                interaction.reply("Fatal error ID 10001");
+            }
+        }
+        
     }
 })
 
@@ -86,3 +93,7 @@ client.on('voiceStateUpdate', async (os, ns) => {
 client.login(process.env.BOT_TOKEN).then(async() => {
     console.log("Online")
 })
+
+process.on('uncaughtException', (a) => {
+    console.log(a);
+}) 
