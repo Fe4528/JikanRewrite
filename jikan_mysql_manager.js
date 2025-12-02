@@ -14,13 +14,11 @@ class MySQLDatabase {
                 queueLimit: 0, 
             }); 
         })();
-
-        this.keepAlive();
     }
-
+    /*
     keepAlive() {
         let count = 1;
-        /*
+       
         setInterval(() => {
             //this.connection.execute("insert into `JikanGlobalLeaderboard` (user_id, user_name, vc_time) values (?, ?, ?)",["FUCK", "THIS", 1832748937412]);
             this.connection.execute("select 1=1");
@@ -28,9 +26,10 @@ class MySQLDatabase {
             count++;
         }, 3000)
         // idk why but the provided mysql server keeps locking me tf out if the app is idle for a minute
-        */
+        
     }
-
+    */
+   
     // TYPES OF SCOPE:
     //
     // GLOBAL
