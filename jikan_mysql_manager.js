@@ -130,24 +130,38 @@ class MySQLDatabase {
             if (exists) {
                 // means they exist in this leaderboard
                 // so just update or set it
+                //
+                // take note that we should also update
+                // the username just in case they change it
+                //
+                // no need to change ID as it can't be changed
+                // by the user
+
                 if (params.mode == "UPDATE") {
-                    await this.connection.execute(`update \`${tableName}\` set vc_time = vc_time + (?) where user_id = (?)`, [params.current_time, params.id]);
+                    await this.connection.execute(`update \`${tableName}\` set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
                 } else if (params.mode == "SET") {
-                    await this.connection.execute(`update \`${tableName}\` set vc_time = (?) where user_id = (?)`, [params.current_time, params.id]);
+                    await this.connection.execute(`update \`${tableName}\` set vc_time = (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
                 } else {
-                    return new JikanDBError("Bro what kinda mode is that");
+                    return new JikanDBError(`Unsupported mode: ${params.mode}`);
                 }
             } else {
                 // create entries in order: jikanuser, jikan global db, jikan guild db, temp
-                //console.log("work")
+                // console.log("work")
 
-                await this.connection.execute(`insert into \`JikanUser\` (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                await this.connection.execute(`insert into \`JikanGlobalLeaderboard\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                await this.connection.execute(`insert into \`JikanGuildLeaderboard_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                await this.connection.execute(`insert into \`JikanGuildLeaderboardTemp_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
+                await this.connection.execute(`insert ignore into \`JikanUser\` (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+                // user
+                
+                await this.connection.execute(`insert ignore into \`JikanGlobalLeaderboard\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+                // global lb
+                
+                await this.connection.execute(`insert ignore into \`JikanGuildLeaderboard_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+                // guild lb (local)
+                
+                await this.connection.execute(`insert ignore into \`JikanGuildLeaderboardTemp_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
+                // temp lb
             }
         } catch (e) {
-            return new JikanDBError("Fatal error at updateUserTime() 0 0 a3"); // just bullshit error code for fancy purposes
+            return new JikanDBError("Fatal error at updateUserTime()"); // just bullshit error code for fancy purposes
         }
     }
 
@@ -169,6 +183,38 @@ class MySQLDatabase {
      */
     async getTempTimeAndLocal(user_id, guild_id) {
         const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from \`JikanUser\` as userdb right join \`JikanGuildLeaderboard_${guild_id}\` as local on userdb.user_id = local.user_id right join \`JikanGuildLeaderboardTemp_${guild_id}\` as temp on local.user_id = temp.user_id where local.user_id = (?)`, [user_id]);
+        return res[0];
+    }
+
+    /**
+     * Create server data
+     * @param {string} id The server ID 
+     */
+    async createServerData(id) {
+        const local_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`);
+        const temp_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)
+        if (!local_lb_exists) {
+            // in testing, this should remove the datas because i will
+            // simulate an "on join" event so i don't have to
+            // kick the bot and join multiple times
+
+            // make data
+        }
+
+        if (!temp_lb_exists) {
+            // it will be nonexistent anyways if you kick the bot
+            // to prevent time exploits
+            //
+            // if statement just in case
+        }
+    }
+
+    /**
+     * Check if table exists (internal use only i think)
+     * @param {string} table_name 
+     */
+    async checkIfDBTableExists(table_name) {
+        const [res] = await this.connection.query(`select count(*) from information_schema.tables where table_schema = (?)`, [table_name]);
         return res[0];
     }
 }

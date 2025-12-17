@@ -10,14 +10,25 @@ module.exports.changeDetected = async (os, ns, client) => {
     try {
         if (ns.channel) {
             // left or switched channels
-            await jdb.updateUserTime({
-                guild_id: guild.id,
-                id: member.id,
-                type: "TEMP",
-                current_time: Date.now(),
-                user_name: member.user.username,
-                mode: "SET"
-            })
+            //
+            // check first if temp time is 0
+            // because it means they haven't joined a vc
+
+            const date_now = Date.now();
+
+            const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
+            if (local_time.temp_time == 0 || local_time.length < 1) {
+                // no data | not joined in vc
+                
+                await jdb.updateUserTime({
+                    guild_id: guild.id,
+                    id: member.id,
+                    type: "TEMP",
+                    current_time: date_now,
+                    user_name: member.user.username,
+                    mode: "SET"
+                })
+            }
 
             console.log("Found user: %s", member.id);
         } else if (!ns.channel && os.channel) {
@@ -27,6 +38,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             //console.log(old_time);
             const time_spent_after_leaving = Date.now() - old_time.temp_time;
 
+            // update local
             await jdb.updateUserTime({
                 guild_id: guild.id,
                 id: member.id,
@@ -36,6 +48,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 mode: "UPDATE"
             });
 
+            // update global
             await jdb.updateUserTime({
                 guild_id: guild.id,
                 id: member.id,
@@ -45,6 +58,8 @@ module.exports.changeDetected = async (os, ns, client) => {
                 mode: "UPDATE"
             });
 
+            // reset temp data
+            // makes sure that you set it to 0
             await jdb.updateUserTime({
                 guild_id: guild.id,
                 id: member.id,
