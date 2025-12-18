@@ -79,16 +79,6 @@ class MySQLDatabase {
     }
 
     /**
-     * Creates a user, if it doesn't exist yet
-     * @param {object} params 
-     */
-    async createUser(params) {
-        if (await this.userExists(params.id)) {
-            return new JikanDBError("This user already exists.")
-        }
-    }
-
-    /**
      * Check if user with the given ID exists in the database
      * @param {string} user_id 
      * @returns true or false
@@ -193,12 +183,19 @@ class MySQLDatabase {
     async createServerData(id) {
         const local_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`);
         const temp_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)
+
+        console.log(local_lb_exists, temp_lb_exists);
         if (!local_lb_exists) {
             // in testing, this should remove the datas because i will
             // simulate an "on join" event so i don't have to
             // kick the bot and join multiple times
 
             // make data
+            // not sure if i need to use await here...
+            // but we're not waiting for any data so
+            // it should be good
+            console.log("localdb does not exist");
+            this.connection.execute(`create table JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
         }
 
         if (!temp_lb_exists) {
@@ -206,6 +203,8 @@ class MySQLDatabase {
             // to prevent time exploits
             //
             // if statement just in case
+            console.log("temp does not exist");
+            this.connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
         }
     }
 
@@ -214,7 +213,7 @@ class MySQLDatabase {
      * @param {string} table_name 
      */
     async checkIfDBTableExists(table_name) {
-        const [res] = await this.connection.query(`select count(*) from information_schema.tables where table_schema = (?)`, [table_name]);
+        const [res] = await this.connection.query(`show tables like ?`, [table_name]);
         return res[0];
     }
 }

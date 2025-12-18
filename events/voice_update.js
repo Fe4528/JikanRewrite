@@ -17,7 +17,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             const date_now = Date.now();
 
             const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
-            if (local_time.temp_time == 0 || local_time.length < 1) {
+            if (local_time?.temp_time == undefined || local_time.temp_time == 0 || local_time.length < 1) {
                 // no data | not joined in vc
                 
                 await jdb.updateUserTime({
@@ -36,6 +36,7 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             const old_time = await jdb.getAllUserTime(member.id, guild.id);
             //console.log(old_time);
+            
             const time_spent_after_leaving = Date.now() - old_time.temp_time;
 
             // update local
