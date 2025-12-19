@@ -39,6 +39,7 @@ module.exports = {
         const selected_scope = interaction.options.getString('scope') || 'GLOBAL';
         const selected_value = interaction.options.getString('value') || 'vc_time';
         const selected_order = interaction.options.getString('order') || 'desc';
+        
         const lb = await client.database.getLeaderboardFrom(
             selected_scope, 
             interaction.guild.id, 
