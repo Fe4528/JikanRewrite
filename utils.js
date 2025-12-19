@@ -61,3 +61,14 @@ module.exports.ms_convert = (ms) => {
 
     return duration.join(' ');
 }
+
+module.exports.order_strings = {
+    'asc': 'Ascending',
+    'desc': 'Descending'
+}
+
+module.exports.value_strings = {
+    'vc_time': 'VC Time',
+    'user_id': 'User ID',
+    'user_name': 'User Name'
+}

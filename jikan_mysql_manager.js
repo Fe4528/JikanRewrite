@@ -12,7 +12,7 @@ class MySQLDatabase {
                 waitForConnections: true, 
                 connectionLimit: 10, 
                 queueLimit: 0, 
-            }); 
+            });
         })();
     }
     /*
@@ -40,7 +40,7 @@ class MySQLDatabase {
     * Get database scope string for use in query
     * @param {string} type - Type of database
     * @param {string} id - guild id
-    * @returns string
+    * @returns scope of database
     */
     getLeaderboardScope(type, id) {
         switch (type) {
@@ -63,7 +63,7 @@ class MySQLDatabase {
     async getUser(params) {
         let tableName = this.getLeaderboardScope(params.type, params.guild_id)
 
-        const [res] = await this.connection.query(`select * from \`${tableName}\` where user_id = ?`, [params.id]);
+        const [res] = await this.connection.query(`select * from ${tableName} where user_id = ?`, [params.id]);
 
         return res.length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.type}.\nRequested from ${params.guild_id}`);
     }
@@ -85,14 +85,14 @@ class MySQLDatabase {
      */
     async userExists(user_id) {
         // Just assume that all user created are in this table
-        const [res] = await this.connection.query('select user_id from `JikanUser` where user_id = (?)', user_id);
+        const [res] = await this.connection.query('select user_id from JikanUser where user_id = (?)', user_id);
 
         if (res.length > 0) return true;
         return false;
     }
 
     async userExistsInLeaderboard(lb_scope, id) {
-        const [res] = await this.connection.query(`select user_id from \`${lb_scope}\` where user_id = (?)`, [id]);
+        const [res] = await this.connection.query(`select user_id from ${lb_scope} where user_id = (?)`, [id]);
 
         if (res.length < 1) return false;
         return true;
@@ -128,9 +128,9 @@ class MySQLDatabase {
                 // by the user
 
                 if (params.mode == "UPDATE") {
-                    await this.connection.execute(`update \`${tableName}\` set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
+                    await this.connection.execute(`update ${tableName} set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
                 } else if (params.mode == "SET") {
-                    await this.connection.execute(`update \`${tableName}\` set vc_time = (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
+                    await this.connection.execute(`update ${tableName} set vc_time = (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
                 } else {
                     return new JikanDBError(`Unsupported mode: ${params.mode}`);
                 }
@@ -138,16 +138,16 @@ class MySQLDatabase {
                 // create entries in order: jikanuser, jikan global db, jikan guild db, temp
                 // console.log("work")
 
-                await this.connection.execute(`insert ignore into \`JikanUser\` (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+                await this.connection.execute(`insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // user
                 
-                await this.connection.execute(`insert ignore into \`JikanGlobalLeaderboard\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+                await this.execute(`insert ignore into JikanGlobalLeaderboard (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // global lb
-                
-                await this.connection.execute(`insert ignore into \`JikanGuildLeaderboard_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+
+                await this.connection.execute(`insert ignore into JikanGuildLeaderboard_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // guild lb (local)
                 
-                await this.connection.execute(`insert ignore into \`JikanGuildLeaderboardTemp_${params.guild_id}\` (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
+                await this.connection.execute(`insert ignore into JikanGuildLeaderboardTemp_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
                 // temp lb
             }
         } catch (e) {
@@ -161,7 +161,7 @@ class MySQLDatabase {
      * @param {string} guild_id  
      */
     async getAllUserTime(user_id, guild_id) {
-        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from \`JikanUser\` as userdb right join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id right join \`JikanGuildLeaderboard_${guild_id}\` as local on global.user_id = local.user_id right join \`JikanGuildLeaderboardTemp_${guild_id}\` as temp on global.user_id = temp.user_id where local.user_id = (?)`, [user_id])
+        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from JikanUser as userdb right join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id right join JikanGuildLeaderboard_${guild_id} as local on global.user_id = local.user_id right join JikanGuildLeaderboardTemp_${guild_id} as temp on global.user_id = temp.user_id where local.user_id = (?)`, [user_id])
         return res[0];
     }
 
@@ -172,7 +172,7 @@ class MySQLDatabase {
      * @returns 
      */
     async getTempTimeAndLocal(user_id, guild_id) {
-        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from \`JikanUser\` as userdb right join \`JikanGuildLeaderboard_${guild_id}\` as local on userdb.user_id = local.user_id right join \`JikanGuildLeaderboardTemp_${guild_id}\` as temp on local.user_id = temp.user_id where local.user_id = (?)`, [user_id]);
+        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb right join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id right join JikanGuildLeaderboardTemp_${guild_id} as temp on local.user_id = temp.user_id where local.user_id = (?)`, [user_id]);
         return res[0];
     }
 
@@ -215,6 +215,21 @@ class MySQLDatabase {
     async checkIfDBTableExists(table_name) {
         const [res] = await this.connection.query(`show tables like ?`, [table_name]);
         return res[0];
+    }
+
+    /**
+     * Get leaderboard from type
+     * @param {string} type
+     * @param {string} guild_id
+     * @param {string} what_to_order - the column to order by
+     * @param {string} order - "asc" or "desc"
+     * @returns {Array} Array of users in leaderboard
+     */
+    async getLeaderboardFrom(type, guild_id = null, value = "vc_time", order = "desc") {
+        const scope = this.getLeaderboardScope(type, guild_id);
+
+        const [res] = await this.connection.query(`select * from ${scope} order by ${value} ${order}`);
+        return res;
     }
 }
 
