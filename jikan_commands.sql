@@ -43,3 +43,4 @@ create table JikanGlobalLeaderboard (
 --
 -- guild leaderboard creation
 -- create table JikanGuildLeaderboard_1122615524942155841 (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)
+-- test
