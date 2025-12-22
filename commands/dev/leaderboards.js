@@ -58,7 +58,9 @@ module.exports = {
 
         let leaderboard_contents = "";
         lb.forEach((user, index) => {
-            leaderboard_contents += `${index + 1}. ${user.user_name} - ${selected_scope == "TEMP" && user.vc_time != 0 ? ms_convert(Date.now() - user.vc_time) : ms_convert(user.vc_time)}\n`;
+            leaderboard_contents += `${index + 1}. ${user.user_name} ${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${selected_scope == "TEMP" && user.vc_time != 0 
+                ? ms_convert(Date.now() - user.vc_time) 
+                : ms_convert(user.vc_time)}\n`;
             // if TEMP is selected, vc_time is actually the timestamp they joined, so we need to do Date.now() - vc_time
             // to get their current time in VC.
             //
@@ -67,7 +69,7 @@ module.exports = {
 
 
         const embed = new discord.EmbedBuilder()
-            .setTitle('Test Leaderboard')
+            .setTitle(selected_scope == 'GLOBAL' ? 'Global Leaderboard' : selected_scope == 'LOCAL' ? `${interaction.guild.name} | Leaderboard` : `${interaction.guild.name} | Realtime Leaderboard`)
             .setDescription(`${code_block(leaderboard_contents)}\nSorting by ${value_strings[selected_value]} in ${order_strings[selected_order]} order`)
             .setColor('#0099ff');
         interaction.reply({ embeds: [embed] });
