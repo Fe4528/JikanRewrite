@@ -1,13 +1,19 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { JikanDBError, code_block, ms_convert } = require('../../utils');
+const { JikanDBError, code_block, ms_convert, getLocaleTranslation } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('getuser')
-    .setDescription('get user by id')
+    .setDescription(getLocaleTranslation('en-US', 'commands.dev.getuser.description'))
+    .setDescriptionLocalizations({
+        "ja": getLocaleTranslation("ja", "commands.dev.getuser.description")
+    })
     .addStringOption(i => i
         .setName('user_id')
-        .setDescription('user id')
+        .setDescription(getLocaleTranslation('en-US', 'commands.dev.getuser.options.user_id.description'))
+        .setDescriptionLocalizations({
+            "ja": getLocaleTranslation("ja", "commands.dev.getuser.options.user_id.description")
+        })
         .setRequired(true)
     ),
     async run(discord, client, interaction) {

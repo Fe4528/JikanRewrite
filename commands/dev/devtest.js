@@ -1,9 +1,13 @@
-const { SlashCommandBuilder } = require('discord.js')
+const { SlashCommandBuilder } = require('discord.js');
+const { getLocaleTranslation } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('devtest')
-    .setDescription('dev test'),
+    .setDescription(getLocaleTranslation('en-US', 'commands.dev.devtest.description'))
+    .setDescriptionLocalizations({
+        "ja": getLocaleTranslation("ja", "commands.dev.devtest.description")
+    }),
     async run(discord, client, interaction) {
         interaction.reply("dev test");
     }

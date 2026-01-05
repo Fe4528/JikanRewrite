@@ -49,7 +49,7 @@ client.on('interactionCreate', async interaction => {
         
         console.log(is_devcommand(interaction.commandName, dev_commands_names));
         if (is_devcommand(interaction.commandName, dev_commands_names)) {
-            if (!interaction.user.id.includes(process.env.OWNER_ID)) {
+            if (!interaction.user.id == process.env.OWNER_ID) {
                 return interaction.reply("not developer (from index.js)");
             }
             module = require(`./commands/dev/${interaction.commandName}.js`)

@@ -1,0 +1,29 @@
+{
+    "_comment": "Japanese Translations (Machine Translated for now, need contributors)",
+    "commands": {
+        "dev": {
+            "_comment": "developer commands don't need to be translated but if you want then go ahead",
+            "getuser": {
+                "_description_original": "get user by id",
+                "description": "IDでユーザーを取得",
+                "options": {
+                    "user_id": {
+                        "_original": "id of the user to get",
+                        "description": "取得するユーザーのID"
+                    }
+                }
+            }
+        },
+        "public": {
+            "about": {
+                "description": "Jikanボットについて"
+            }
+        }
+    },
+    "common": {
+        "ok": "OK",
+        "cancel": "キャンセル",
+        "yes": "はい",
+        "no": "いいえ"
+    }
+}

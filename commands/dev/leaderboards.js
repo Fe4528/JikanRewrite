@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js')
-const { code_block, ms_convert, order_strings, value_strings } = require('../../utils');
+const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,31 +8,66 @@ module.exports = {
     .addStringOption(option => 
         option
         .setName('scope')
-        .setDescription('leaderboard to show')
+        .setDescription('Leaderboard to show')
+        .setDescriptionLocalizations(localizationTemplate('commands.public.leaderboards.options.scope.description'))
         .addChoices(
-            { name: 'global', value: 'GLOBAL' },
-            { name: 'local', value: 'LOCAL' },
-            { name: 'realtime', value: 'TEMP' }
+            {
+                name: getLocaleTranslation('en-US', 'common.global'),
+                name_localizations: localizationTemplate('common.global'),
+                value: 'GLOBAL' 
+            },
+            { 
+                name: getLocaleTranslation('en-US', 'common.local'),
+                name_localizations: localizationTemplate('common.local'),
+                value: 'LOCAL' 
+            },
+            { 
+                name: getLocaleTranslation('en-US', 'common.realtime'),
+                name_localizations: localizationTemplate('common.realtime'),
+                value: 'TEMP' 
+            }
         )
         .setRequired(true)
     )
     .addStringOption(option => 
         option
         .setName('value')
-        .setDescription('which value')
+        .setDescription('Which value')
+        .setDescriptionLocalizations(localizationTemplate('commands.public.leaderboards.options.value.description'))
         .addChoices(
-            { name: 'vc time', value: 'vc_time' },
-            { name: 'user id', value: 'user_id' },
-            { name: 'user name', value: 'user_name' }
+            { 
+                name: getLocaleTranslation('en-US', 'common.vc_time'),
+                name_localizations: localizationTemplate('common.vc_time'),
+                value: 'vc_time' 
+            },
+            { 
+                name: getLocaleTranslation('en-US', 'common.user_id'), 
+                name_localizations: localizationTemplate('common.user_id'),
+                value: 'user_id' 
+            },
+            { 
+                name: getLocaleTranslation('en-US', 'common.user_name'), 
+                name_localizations: localizationTemplate('common.user_name'),
+                value: 'user_name' 
+            }
         )
     )
     .addStringOption(option => 
         option
         .setName('order')
-        .setDescription('sort to apply')
+        .setDescription('Ascending or Descending')
+        .setDescriptionLocalizations(localizationTemplate('commands.public.leaderboards.options.order.description'))
         .addChoices(
-            { name: 'descending', value: 'desc' },
-            { name: 'ascending', value: 'asc' }
+            { 
+                name: getLocaleTranslation('en-US', 'common.desc'),
+                name_localizations: localizationTemplate('common.desc'),
+                value: 'desc' 
+            },
+            { 
+                name: getLocaleTranslation('en-US', 'common.asc'),
+                name_localizations: localizationTemplate('common.asc'),
+                value: 'asc' 
+            }
         )
     ),
     async run(discord, client, interaction) {
@@ -69,8 +104,8 @@ module.exports = {
 
 
         const embed = new discord.EmbedBuilder()
-            .setTitle(selected_scope == 'GLOBAL' ? 'Global Leaderboard' : selected_scope == 'LOCAL' ? `${interaction.guild.name} | Leaderboard` : `${interaction.guild.name} | Realtime Leaderboard`)
-            .setDescription(`${code_block(leaderboard_contents)}\nSorting by ${value_strings[selected_value]} in ${order_strings[selected_order]} order`)
+            .setTitle(selected_scope == 'GLOBAL' ? getLocaleTranslation(interaction.locale, 'leaderboard_titles.global') : selected_scope == 'LOCAL' ? `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.local', interaction.guild.name)}` : `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.realtime', interaction.guild.name)}`)
+            .setDescription(`${code_block(leaderboard_contents)}\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer', getLocaleTranslation(interaction.locale, `common.${selected_value}`), getLocaleTranslation(interaction.locale, `common.${selected_order}`))}`)
             .setColor('#0099ff');
         interaction.reply({ embeds: [embed] });
     }
