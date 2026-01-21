@@ -104,6 +104,13 @@ module.exports.ms_convert = (ms) => {
     return duration.join(' ');
 }
 
+module.exports.ms_convert_full = (ms) => {
+    const seconds = ms / 1000;
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const years = Math.floor(days / 365);
+}
 /**
  * Strings for leaderboards (should be on localization json tbh)
  */
@@ -130,7 +137,7 @@ module.exports.value_strings = {
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? `not_found`;
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? `${locale}.${key}`;
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;

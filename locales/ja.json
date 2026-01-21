@@ -12,11 +12,37 @@
                         "description": "取得するユーザーのID"
                     }
                 }
+            },
+            "devtest": {
+                "description": "開発者テストコマンド"
+            },
+            "localetest": {
+                "description": "ローカルテストコマンド"
             }
         },
         "public": {
             "about": {
-                "description": "Jikanボットについて"
+                "description": "Jikanボットについて",
+                "embed": {
+                    "_title_comment": "Title doesn't need translation",
+                    "title": "Jikan",
+                    "description": {
+                        "creator": "このボットは{0}によって作成されました",
+                        "user_count": "ユーザー数: {0}"
+                    },
+                    "fields": {
+                        "server_count": {
+                            "name": "サーバー数"
+                        },
+                        "ping": {
+                            "name": "レイテンシ"
+                        },
+                        "hardware": {
+                            "name": "役に立たない情報",
+                            "value": "CPU: {0}\nCPU 使用率: {1}%\nOS: {2}"
+                        }
+                    }
+                }
             }
         }
     },

@@ -26,7 +26,27 @@
         },
         "public": {
             "about": {
-                "description": "About Jikan"
+                "description": "About Jikan",
+                "embed": {
+                    "_title_comment": "Title doesn't need translation",
+                    "title": "Jikan",
+                    "description": {
+                        "creator": "Made by {0}",
+                        "user_count": "User count: {0}"
+                    },
+                    "fields": {
+                        "server_count": {
+                            "name": "Server Count"
+                        },
+                        "ping": {
+                            "name": "Latency"
+                        },
+                        "hardware": {
+                            "name": "Useless Information",
+                            "value": "CPU: {0}\nCPU Usage: {1}%\nOS: {2}"
+                        }
+                    }
+                }
             },
             "leaderboards": {
                 "description": "View VC Leaderboards",

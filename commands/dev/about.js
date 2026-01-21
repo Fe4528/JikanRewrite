@@ -1,13 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const node_os = require('node-os-utils');
-const { getLocaleTranslation } = require('../../utils');
+const { getLocaleTranslation, code_block } = require('../../utils');
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('about')
     .setDescription('about Jikan')
     .setDescriptionLocalizations({
-        "en-US": getLocaleTranslation("en-US", "commands.public.about.description"),
         "ja": getLocaleTranslation("ja", "commands.public.about.description")
     }),
     async run(discord, client, interaction) {
@@ -20,10 +19,27 @@ module.exports = {
                 new EmbedBuilder()
                 .setColor("ffffff")
                 .setTitle("Jikan")
+                .setDescription(`${getLocaleTranslation(interaction.locale, 'commands.public.about.embed.description.creator', '@fe4528')}\n\n${getLocaleTranslation(interaction.locale, 'commands.public.about.embed.description.user_count', 'cannot find')}`)
                 .addFields([
                     {
-                        name: "Hardware",
-                        value: `\`\`\`\nCPU: x${cpus.count()} ${cpus.model()}\nCPU Usage: ${cpu_usage}%\nOS: ${os_name}\n\`\`\``
+                        name: getLocaleTranslation(interaction.locale, 'commands.public.about.embed.fields.server_count.name'),
+                        value: `${interaction.client.guilds.cache.size}`,
+                        inline: true
+                    },
+                    {
+                        name: getLocaleTranslation(interaction.locale, 'commands.public.about.embed.fields.ping.name'),
+                        value: `${interaction.client.ws.ping}ms`,
+                        inline: true
+                    }
+                ])
+                .addFields([
+                    {
+                        name: getLocaleTranslation(interaction.locale, 'commands.public.about.embed.fields.hardware.name'),
+                        value: code_block(getLocaleTranslation(interaction.locale, 'commands.public.about.embed.fields.hardware.value',
+                            cpus.model(),
+                            `${cpu_usage}`,
+                            os_name
+                        )),
                     }
                 ])
             ]
