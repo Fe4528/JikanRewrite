@@ -21,16 +21,16 @@ create table JikanGuildLeaderboardSettings (
 	ignored_role varchar(30)
 );
 
-create table JikanGuildLeaderboard_1122615524942155841 (
+create table JikanGuildLeaderboard_930768088121626634 (
 	user_id varchar(30) primary key not null,
     user_name varchar(50) not null,
     vc_time bigint not null
 );
 
-create table JikanGuildLeaderboardTemp_1122615524942155841 (
+create table JikanGuildLeaderboardTemp_930768088121626634 (
 	user_id varchar(30) primary key not null,
     user_name varchar(50) not null,
-    join_time bigint not null
+    vc_time bigint not null
 );
 
 create table JikanGlobalLeaderboard (

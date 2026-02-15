@@ -3,7 +3,7 @@ const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = r
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('leaderboards')
+    .setName('leaderboards_dev')
     .setDescription('test leaderboards')
     .addStringOption(option => 
         option

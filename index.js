@@ -71,8 +71,8 @@ client.on('interactionCreate', async interaction => {
 client.on('clientReady', async ls => {
     //refresh_modules()
     try {
-        await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
-        console.log('refreshed global')
+        //await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
+        //console.log('refreshed global')
 
         await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
         console.log('refreshed guild command')
@@ -84,6 +84,13 @@ client.on('clientReady', async ls => {
 client.on('voiceStateUpdate', async (os, ns) => {
     if (!os && !ns) return;
     if (ns.member.user.bot) return;
+
+    //if (ns.guild.id != "930768088121626634") return;
+
+    if (!await client.database.checkGuildDBAvailability(ns.guild.id)) {
+        console.log("local and temp not found, creating...");
+        await client.database.createServerData(ns.guild.id)
+    }
 
     if (os.channel !== ns.channel) {
         voice_update_module.changeDetected(os, ns, client)

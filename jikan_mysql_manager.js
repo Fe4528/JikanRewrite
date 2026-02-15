@@ -2,16 +2,17 @@ const mysql = require('mysql2/promise');
 const { JikanDBError } = require('./utils.js')
 
 class MySQLDatabase {
-    constructor() { 
-        (async () => { 
-            this.connection = await mysql.createPool({ 
-                host: process.env.MYSQL_ENDPOINT, 
-                user: process.env.MYSQL_USER, 
-                password: process.env.MYSQL_PASSWORD, 
-                database: process.env.MYSQL_DBNAME, 
-                waitForConnections: true, 
-                connectionLimit: 10, 
-                queueLimit: 0, 
+    constructor() {
+        (async () => {
+            this.connection = await mysql.createPool({
+                host: process.env.MYSQL_ENDPOINT,
+                user: process.env.MYSQL_USER,
+                password: process.env.MYSQL_PASSWORD,
+                database: process.env.MYSQL_DBNAME,
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0,
+                port: 3307
             });
         })();
     }
@@ -29,7 +30,7 @@ class MySQLDatabase {
         
     }
     */
-   
+
     // TYPES OF SCOPE:
     //
     // GLOBAL
@@ -126,6 +127,7 @@ class MySQLDatabase {
                 //
                 // no need to change ID as it can't be changed
                 // by the user
+                console.log("User %s, start update local and temp...", params.id);
 
                 if (params.mode == "UPDATE") {
                     await this.connection.execute(`update ${tableName} set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
@@ -136,22 +138,22 @@ class MySQLDatabase {
                 }
             } else {
                 // create entries in order: jikanuser, jikan global db, jikan guild db, temp
-                // console.log("work")
+                console.log("User %s does not exist. creating entries...", params.id)
 
                 await this.connection.execute(`insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // user
-                
-                await this.execute(`insert ignore into JikanGlobalLeaderboard (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
+
+                await this.connection.execute(`insert ignore into JikanGlobalLeaderboard (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // global lb
 
                 await this.connection.execute(`insert ignore into JikanGuildLeaderboard_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // guild lb (local)
-                
+
                 await this.connection.execute(`insert ignore into JikanGuildLeaderboardTemp_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
                 // temp lb
             }
         } catch (e) {
-            return new JikanDBError("Fatal error at updateUserTime()"); // just bullshit error code for fancy purposes
+            return new JikanDBError("Fatal error at updateUserTime()");
         }
     }
 
@@ -161,7 +163,7 @@ class MySQLDatabase {
      * @param {string} guild_id  
      */
     async getAllUserTime(user_id, guild_id) {
-        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from JikanUser as userdb right join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id right join JikanGuildLeaderboard_${guild_id} as local on global.user_id = local.user_id right join JikanGuildLeaderboardTemp_${guild_id} as temp on global.user_id = temp.user_id where local.user_id = (?)`, [user_id])
+        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id left join JikanGuildLeaderboard_${guild_id} as local on global.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on global.user_id = temp.user_id where userdb.user_id = (?)`, [user_id])
         return res[0];
     }
 
@@ -172,7 +174,7 @@ class MySQLDatabase {
      * @returns 
      */
     async getTempTimeAndLocal(user_id, guild_id) {
-        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb right join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id right join JikanGuildLeaderboardTemp_${guild_id} as temp on local.user_id = temp.user_id where local.user_id = (?)`, [user_id]);
+        const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on local.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
         return res[0];
     }
 
@@ -181,31 +183,23 @@ class MySQLDatabase {
      * @param {string} id The server ID 
      */
     async createServerData(id) {
-        const local_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`);
-        const temp_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)
+        // in testing, this should remove the datas because i will
+        // simulate an "on join" event so i don't have to
+        // kick the bot and join multiple times
 
-        console.log(local_lb_exists, temp_lb_exists);
-        if (!local_lb_exists) {
-            // in testing, this should remove the datas because i will
-            // simulate an "on join" event so i don't have to
-            // kick the bot and join multiple times
+        // make data
+        // not sure if i need to use await here...
+        // but we're not waiting for any data so
+        // it should be good
+        console.log("local db does not exist");
+        await this.connection.execute(`create table JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
 
-            // make data
-            // not sure if i need to use await here...
-            // but we're not waiting for any data so
-            // it should be good
-            console.log("localdb does not exist");
-            this.connection.execute(`create table JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-        }
-
-        if (!temp_lb_exists) {
-            // it will be nonexistent anyways if you kick the bot
-            // to prevent time exploits
-            //
-            // if statement just in case
-            console.log("temp does not exist");
-            this.connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-        }
+        // it will be nonexistent anyways if you kick the bot
+        // to prevent time exploits
+        //
+        // if statement just in case
+        console.log("temp does not exist");
+        await this.connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
     }
 
     /**
@@ -215,6 +209,18 @@ class MySQLDatabase {
     async checkIfDBTableExists(table_name) {
         const [res] = await this.connection.query(`show tables like ?`, [table_name]);
         return res[0];
+    }
+
+    /**
+     * Check if all db is valid
+     */
+    async checkGuildDBAvailability(id) {
+        const local_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`);
+        const temp_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)
+
+        if (local_lb_exists && temp_lb_exists) {
+            return true
+        }
     }
 
     /**

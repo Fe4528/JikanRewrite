@@ -19,7 +19,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
             if (local_time?.temp_time == undefined || local_time.temp_time == 0 || local_time.length < 1) {
                 // no data | not joined in vc
-                
+
                 await jdb.updateUserTime({
                     guild_id: guild.id,
                     id: member.id,
@@ -28,14 +28,17 @@ module.exports.changeDetected = async (os, ns, client) => {
                     user_name: member.user.username,
                     mode: "SET"
                 })
+                console.log(`User %s SET time`, member.id);
+            } else {
+                console.log(`User %s moved to Channel %s`, member.id, ns.channel.id);
             }
 
-            console.log("Found user: %s", member.id);
+            console.log("User %s joined Channel %s", member.id, ns.channel.id);
         } else if (!ns.channel && os.channel) {
             // left vc
 
             const old_time = await jdb.getAllUserTime(member.id, guild.id);
-            //console.log(old_time);
+            console.log(old_time);
             
             const time_spent_after_leaving = Date.now() - old_time.temp_time;
 
@@ -48,6 +51,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 user_name: member.user.username,
                 mode: "UPDATE"
             });
+            console.log("User %s LOCAL time has been updated", member.id);
 
             // update global
             await jdb.updateUserTime({
@@ -58,6 +62,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 user_name: member.user.username,
                 mode: "UPDATE"
             });
+            console.log("User %s GLOBAL time has been updated", member.id);
 
             // reset temp data
             // makes sure that you set it to 0
@@ -69,10 +74,10 @@ module.exports.changeDetected = async (os, ns, client) => {
                 user_name: member.user.username,
                 mode: "SET"
             });
-
-            console.log("User left: %s", member.id)
+            console.log("User %s TEMP time has been set", member.id);
+            console.log("User %s left Channel %s", member.id, os.channel.id)
         }
-    } catch(e) {
+    } catch (e) {
         if (e instanceof JikanDBError) {
             console.log(e.reason);
         } else {
