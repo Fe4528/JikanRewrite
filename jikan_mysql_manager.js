@@ -10,7 +10,7 @@ class MySQLDatabase {
                 password: process.env.MYSQL_PASSWORD,
                 database: process.env.MYSQL_DBNAME,
                 waitForConnections: true,
-                connectionLimit: 10,
+                connectionLimit: 2,
                 queueLimit: 0,
                 port: 3307
             });
@@ -66,6 +66,8 @@ class MySQLDatabase {
 
         const [res] = await this.connection.query(`select * from ${tableName} where user_id = ?`, [params.id]);
 
+        this.connection.release();
+
         return res.length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.type}.\nRequested from ${params.guild_id}`);
     }
 
@@ -88,12 +90,16 @@ class MySQLDatabase {
         // Just assume that all user created are in this table
         const [res] = await this.connection.query('select user_id from JikanUser where user_id = (?)', user_id);
 
+        this.connection.release();
+
         if (res.length > 0) return true;
         return false;
     }
 
     async userExistsInLeaderboard(lb_scope, id) {
         const [res] = await this.connection.query(`select user_id from ${lb_scope} where user_id = (?)`, [id]);
+
+        this.connection.release();
 
         if (res.length < 1) return false;
         return true;
@@ -154,6 +160,8 @@ class MySQLDatabase {
             }
         } catch (e) {
             return new JikanDBError("Fatal error at updateUserTime()");
+        } finally {
+            this.connection.release();
         }
     }
 
@@ -164,6 +172,9 @@ class MySQLDatabase {
      */
     async getAllUserTime(user_id, guild_id) {
         const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id left join JikanGuildLeaderboard_${guild_id} as local on global.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on global.user_id = temp.user_id where userdb.user_id = (?)`, [user_id])
+
+        this.connection.release();
+
         return res[0];
     }
 
@@ -175,6 +186,9 @@ class MySQLDatabase {
      */
     async getTempTimeAndLocal(user_id, guild_id) {
         const [res] = await this.connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on local.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
+
+        this.connection.release();
+
         return res[0];
     }
 
@@ -200,6 +214,8 @@ class MySQLDatabase {
         // if statement just in case
         console.log("temp does not exist");
         await this.connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+
+        this.connection.release();
     }
 
     /**
@@ -208,6 +224,9 @@ class MySQLDatabase {
      */
     async checkIfDBTableExists(table_name) {
         const [res] = await this.connection.query(`show tables like ?`, [table_name]);
+
+        this.connection.release();
+
         return res[0];
     }
 
@@ -235,6 +254,9 @@ class MySQLDatabase {
         const scope = this.getLeaderboardScope(type, guild_id);
 
         const [res] = await this.connection.query(`select * from ${scope} order by ${value} ${order}`);
+
+        this.connection.release();
+
         return res;
     }
 }
