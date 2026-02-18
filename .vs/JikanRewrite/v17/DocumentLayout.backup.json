@@ -42,8 +42,7 @@
               "RelativeToolTip": "events\\voice_update.js",
               "ViewState": "AgIAACcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-15T16:25:51.546Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-15T16:25:51.546Z"
             },
             {
               "$type": "Document",
@@ -53,7 +52,7 @@
               "RelativeDocumentMoniker": "jikan_mysql_manager.js",
               "ToolTip": "I:\\Programming\\JikanRewrite\\jikan_mysql_manager.js",
               "RelativeToolTip": "jikan_mysql_manager.js",
-              "ViewState": "AgIAAHgAAAAAAAAAAAAAABEAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2026-02-15T14:49:52.368Z",
               "EditorCaption": ""

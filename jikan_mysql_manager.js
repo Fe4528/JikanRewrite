@@ -278,10 +278,10 @@ class MySQLDatabase {
         try {
             connection = await this.connection.getConnection();
 
-            if (!await connection.query('select server_id from JikanLeaderboardSettings where server_id = ?', [id])[0]) {
+            if (!await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id])[0]) {
                 // no leaderboard settings
 
-                console.log("No JikanLeaderboardSettings for %s, creating...", id);
+                console.log("No JikanGuildLeaderboardSettings for %s, creating...", id);
                 await connection.execute('insert into JikanGuildLeaderboardSettings (server_id) values (?)', [id]);
             }
 
