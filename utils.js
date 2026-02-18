@@ -18,6 +18,23 @@ function load_locale(locale) {
     return locale_cache[locale];
 }
 
+const console_colors = {
+  default: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  underscore: '\x1b[4m',
+  blink: '\x1b[5m',
+  reverse: '\x1b[7m',
+  hidden: '\x1b[8m',
+  black: '\x1b[30m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+}
 
 /**
  * Custom Error class for JikanDB related errors
@@ -104,13 +121,6 @@ module.exports.ms_convert = (ms) => {
     return duration.join(' ');
 }
 
-module.exports.ms_convert_full = (ms) => {
-    const seconds = ms / 1000;
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const years = Math.floor(days / 365);
-}
 /**
  * Strings for leaderboards (should be on localization json tbh)
  */
@@ -147,3 +157,7 @@ module.exports.getLocaleTranslation = function (locale, key, ...vars) {
 module.exports.localizationTemplate = (key) => ({
     'ja': module.exports.getLocaleTranslation('ja', key)
 })
+
+module.exports.consoleColor = (string, color = 'white') => {
+    return `${console_colors[color]}${string}${console_colors.default}`;
+}

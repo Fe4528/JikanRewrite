@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
 const { JikanDBError } = require('./utils.js');
 
-class MySQLDatabase {
+class JikanMySQLDatabase {
     constructor() {
         (async () => {
             this.connection = await mysql.createPool({
@@ -368,4 +368,4 @@ class MySQLDatabase {
     }
 }
 
-module.exports = MySQLDatabase;
+module.exports = JikanMySQLDatabase;
