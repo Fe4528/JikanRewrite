@@ -158,6 +158,13 @@ module.exports.localizationTemplate = (key) => ({
     'ja': module.exports.getLocaleTranslation('ja', key)
 })
 
+
+/**
+ * Generates an ANSI escape code for the given string
+ * @param {string} string String to concatenate
+ * @param {string} color color or style of string
+ * @returns ansi escape code with string concatenated
+ */
 module.exports.consoleColor = (string, color = 'white') => {
     return `${console_colors[color]}${string}${console_colors.default}`;
 }

@@ -4,7 +4,7 @@ loadEnvFile('.env');
 
 const { REST, Routes } = require('discord.js');
 const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
-const { is_devcommand, JikanDBError } = require('./utils.js')
+const { is_devcommand, JikanDBError, consoleColor } = require('./utils.js')
 const discord = require('discord.js')
 const jmysql = require('./jikan_mysql_manager.js');
 const db = new jmysql();
@@ -86,9 +86,9 @@ client.on('voiceStateUpdate', async (os, ns) => {
     if (ns.member.user.bot) return;
 
     //if (ns.guild.id != "930768088121626634") return;
-
-    if (!await client.database.checkGuildDBAvailability(ns.guild.id)) {
-        console.log("local and temp not found, creating...");
+    const guild_id = ns.guild.id;
+    if (!await client.database.checkGuildDBAvailability(guild_id)) {
+        console.log(consoleColor(`JikanGuildLeaderboard and JikanGuildLeaderboardTemp has no record for Guild ${guild_id}`, "yellow"));
         await client.database.createServerData(ns.guild.id)
     }
 
