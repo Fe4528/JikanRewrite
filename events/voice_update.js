@@ -50,7 +50,12 @@ module.exports.changeDetected = async (os, ns, client) => {
                 // either the user left vc without a record in JikanGuildLeaderboardTemp_
                 // happens when user left vc while Jikan just started
 
-                console.log(consoleColor(`User ${member.id} illegal operation (User not found in JikanGuildLeaderboardTemp_${guild.id})`, "red"));
+                console.log(consoleColor(`User ${member.id} illegal operation (same vc time as Date.now() in JikanGuildLeaderboardTemp_${guild.id})`, "red"));
+
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
+
+                console.log(consoleColor(`User ${member.id} temp time has been set to 0 (JikanGuildLeaderboardTemp_${guild.id})`, "green"));
+
                 return;
             }
 

@@ -10,7 +10,7 @@ class JikanMySQLDatabase {
                 password: process.env.MYSQL_PASSWORD,
                 database: process.env.MYSQL_DBNAME,
                 waitForConnections: true,
-                connectionLimit: 5,
+                connectionLimit: 3,
                 queueLimit: 0,
                 port: 3307
             });
@@ -72,7 +72,7 @@ class JikanMySQLDatabase {
 
             return res.length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.type}.\nRequested from ${params.guild_id}`);
         } catch (e) {
-            return new JikanDBError(e)
+            return new JikanDBError(e.message)
         } finally {
             if (connection) {
                 connection.release();
@@ -94,7 +94,7 @@ class JikanMySQLDatabase {
 
             return row;
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -121,7 +121,7 @@ class JikanMySQLDatabase {
             if (res.length > 0) return true;
             return false;
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -141,7 +141,7 @@ class JikanMySQLDatabase {
             if (res.length < 1) return false;
             return true;
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -228,7 +228,7 @@ class JikanMySQLDatabase {
 
             return res[0];
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -253,7 +253,7 @@ class JikanMySQLDatabase {
 
             return res[0];
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -297,7 +297,7 @@ class JikanMySQLDatabase {
             await connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
 
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -319,7 +319,7 @@ class JikanMySQLDatabase {
 
             return res[0];
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -360,7 +360,7 @@ class JikanMySQLDatabase {
 
             return res;
         } catch (e) {
-            return new JikanDBError(e);
+            return new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
