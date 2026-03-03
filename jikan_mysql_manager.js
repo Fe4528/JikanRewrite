@@ -199,13 +199,13 @@ class JikanMySQLDatabase {
                 // user
 
                 await connection.execute(`insert ignore into JikanGlobalLeaderboard (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                // global lb
+                // global leaderboard
 
                 await connection.execute(`insert ignore into JikanGuildLeaderboard_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                // guild lb (local)
+                // guild leaderboard (local)
 
                 await connection.execute(`insert ignore into JikanGuildLeaderboardTemp_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
-                // temp lb
+                // temp leaderboard
             }
         } catch (e) {
             throw new JikanDBError(e.reason);
