@@ -10,7 +10,7 @@ class JikanMySQLDatabase {
                 password: process.env.MYSQL_PASSWORD,
                 database: process.env.MYSQL_DBNAME,
                 waitForConnections: true,
-                connectionLimit: 3,
+                connectionLimit: 5,
                 queueLimit: 0,
                 port: 3307
             });
@@ -179,18 +179,21 @@ class JikanMySQLDatabase {
                 //
                 // no need to change ID as it can't be changed
                 // by the user
-                console.log(consoleColor(`User ${params.id}, start update local and temp...`, "green"));
+                console.log(consoleColor(`User ${params.id}, start ${params.mode} ${params.type}`, "green"));
 
                 if (params.mode == "UPDATE") {
                     await connection.execute(`update ${tableName} set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
                 } else if (params.mode == "SET") {
                     await connection.execute(`update ${tableName} set vc_time = (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
-                } else {
+                } else if (params.mode == "DELETE") {
+                    await connection.execute(`delete from ${tableName} where user_id = (?)`, [params.id]);
+                }
+                else {
                     return new JikanDBError(`Unsupported mode: ${params.mode}`);
                 }
             } else {
                 // create entries in order: jikanuser, jikan global db, jikan guild db, temp
-                console.log(consoleColor(`User ${params.id} does not exist. creating entries...`, "red"));
+                console.log(consoleColor(`User ${params.id} does not exist / just entered vc. creating entries...`, "red"));
 
                 await connection.execute(`insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // user
@@ -205,7 +208,7 @@ class JikanMySQLDatabase {
                 // temp lb
             }
         } catch (e) {
-            return new JikanDBError("Fatal error at updateUserTime()");
+            throw new JikanDBError(e.reason);
         } finally {
             if (connection) {
                 connection.release();
@@ -278,26 +281,43 @@ class JikanMySQLDatabase {
         // it should be good
         try {
             connection = await this.connection.getConnection();
+            const [test_for_settings] = await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id]);
+            //console.log(test_for_settings[0].server_id == undefined);
 
-            if (!await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id])[0]) {
+            if (!test_for_settings[0]) {
                 // no leaderboard settings
 
                 console.log(consoleColor(`No JikanGuildLeaderboardSettings for ${id}, creating...`, "yellow"));
+
                 await connection.execute('insert into JikanGuildLeaderboardSettings (server_id) values (?)', [id]);
+
+                console.log(consoleColor(`Guild ${id} JikanGuildLeaderboardSettings entry has been created.,`, "green"));
+            } else {
+                console.log(consoleColor(`JikanGuildLeaderboardSettings for ${id} already exists, continue`, "green"));
             }
 
-            console.log(consoleColor(`Creating JikanGuildLeaderboard_${id}`, "yellow"));
-            await connection.execute(`create table JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            if (!await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`)) {
+                console.log(consoleColor(`Creating JikanGuildLeaderboard_${id} because it does not exist`, "yellow"));
 
-            // it will be nonexistent anyways if you kick the bot
-            // to prevent time exploits
-            //
-            // if statement just in case
-            console.log(consoleColor(`Creating JikanGuildLeaderboardTemp_${id}`, "yellow"));
-            await connection.execute(`create table JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+                await connection.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            } else {
+                console.log(consoleColor(`JikanGuildLeaderboard_${id} already exists, continue`, "green"));
+            }
 
+            if (!await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)) {
+                // JikanGuildLeaderboardTemp_ will be removed anyways if you kick the bot
+                // to prevent time exploits
+
+                console.log(consoleColor(`Creating JikanGuildLeaderboardTemp_${id} because it does not exist`, "yellow"));
+
+                await connection.execute(`create table if not exists JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            } else {
+                console.log(consoleColor(`JikanGuildLeaderboardTemp_${id} exists, continue`, "yellow"));
+            }
+            
+            console.log(consoleColor(`Finished initializing server data for ${id}`, "green"));
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();

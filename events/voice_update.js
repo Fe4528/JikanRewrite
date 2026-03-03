@@ -45,16 +45,17 @@ module.exports.changeDetected = async (os, ns, client) => {
             const old_time = await jdb.getAllUserTime(member.id, guild.id);
             const time_spent_after_leaving = date_now - old_time.temp_time;
 
+            console.log(time_spent_after_leaving, date_now);
             if (time_spent_after_leaving == date_now) {
                 // means temp time is 0 and time spent is the same as the leave timestamp
                 // either the user left vc without a record in JikanGuildLeaderboardTemp_
-                // happens when user left vc while Jikan just started
+                // happens when user left vc while Jikan application is still initializing
 
-                console.log(consoleColor(`User ${member.id} illegal operation (same vc time as Date.now() in JikanGuildLeaderboardTemp_${guild.id})`, "red"));
+                console.log(consoleColor(`User ${member.id} illegal operation in JikanGuildLeaderboardTemp_${guild.id}`, "red"));
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
 
-                console.log(consoleColor(`User ${member.id} temp time has been set to 0 (JikanGuildLeaderboardTemp_${guild.id})`, "green"));
+                console.log(consoleColor(`User ${member.id} temp time record has been deleted in JikanGuildLeaderboardTemp_${guild.id}`, "green"));
 
                 return;
             }
@@ -69,12 +70,13 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             // reset temp data
             // makes sure that you set it to 0
-            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
-
-            console.log("User %s TEMP time has been set", member.id);
+            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
+            // old
+            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
+            console.log("User %s TEMP time has been deleted", member.id);
 
             console.log("User %s left Channel %s", member.id, os.channel.id)
-            console.log("\nInfo for %s:\nUsername: \t%s\nLeave time: \t%s\nVC Time: \t%s\n", member.id, member.user.username, date(), ms_convert(time_spent_after_leaving));
+            console.log("\nInfo for %s:\nUsername: \t%s\nLeave time: \t%s\nVC Time: \t%s [%s]\n", member.id, member.user.username, date(), ms_convert(time_spent_after_leaving), time_spent_after_leaving);
         }
     } catch (e) {
         if (e instanceof JikanDBError) {
