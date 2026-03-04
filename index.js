@@ -88,7 +88,7 @@ client.on('voiceStateUpdate', async (os, ns) => {
     //if (ns.guild.id != "930768088121626634") return;
     const guild_id = ns.guild.id;
     if (!await client.database.checkGuildDBAvailability(guild_id)) {
-        console.log(consoleColor(`JikanGuildLeaderboard and JikanGuildLeaderboardTemp has no record for Guild ${guild_id}`, "yellow"));
+        console.log(consoleColor(`either JikanGuildLeaderboard and JikanGuildLeaderboardTemp has no record for Guild ${guild_id}`, "yellow"));
         await client.database.createServerData(ns.guild.id)
     }
 

@@ -19,20 +19,40 @@ module.exports.changeDetected = async (os, ns, client) => {
             // check first if temp time is 0
             // because it means they haven't joined a vc
 
-            const time_now = Date;
+            const time_now = Date.now();
 
             const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
-            if (local_time?.temp_time == undefined || local_time.temp_time == 0 || local_time.length < 1) {
+            if (local_time?.temp_time == undefined) {
                 // no data | not joined in vc
+                //
+                // || local_time.temp_time == 0 || local_time.length < 1
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: time_now.now(), user_name: member.user.username, mode: "SET" })
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: time_now, user_name: member.user.username, mode: "SET" })
                 console.log(`User %s SET time`, member.id);
+            } else if (local_time?.temp_time) {
+                // this block runs when user joined the channel and it detects that the user already has temp data
+                //
+                // happens when jikan is down while user left vc, so the user is still recorded in JikanGuildLeaderboardTemp_
+                // and user joined vc after Jikan application is initialized and ready to record time
+
+                console.log(consoleColor(`User ${member.id} already has record in JikanGuildLeaderboardTemp_${guild.id}, removing entry`, "red"));
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
+                console.log(consoleColor(`User ${member.id} entry deletion JikanGuildLeaderboardTemp_${guild.id} DONE`, "red"));
+
+                return;
             } else {
-                console.log(`User %s moved to Channel %s`, member.id, ns.channel.id);
+                console.log(consoleColor("something happened that i did not catch", "yellow"));
             }
 
             console.log("User %s joined Channel %s", member.id, ns.channel.id);
-            console.log("\nInfo for %s:\nUsername: \t%s\nJoin time: \t%s\n", member.id, member.user.username, time_now());
+            console.log("\nInfo for %s:\nUsername: \t%s\nJoin time: \t%s\n", member.id, member.user.username, time_now);
+        } else if (os.channel && ns.channel) {
+            // ns = new state = new channel
+            // os = old state = old channel
+            //
+            // this block runs when it detects that the user swapped channels
+
+            console.log(`User %s moved to Channel %s`, member.id, ns.channel.id);
         } else if (!ns.channel && os.channel) {
             // left vc
             if (!await jdb.userExists(member.id)) {
@@ -46,10 +66,14 @@ module.exports.changeDetected = async (os, ns, client) => {
             const time_spent_after_leaving = date_now - old_time.temp_time;
 
             console.log(time_spent_after_leaving, date_now);
-            if (time_spent_after_leaving == date_now) {
-                // means temp time is 0 and time spent is the same as the leave timestamp
-                // either the user left vc without a record in JikanGuildLeaderboardTemp_
-                // happens when user left vc while Jikan application is still initializing
+            if (!old_time.temp_time || time_spent_after_leaving == date_now) {
+                // first check means temp_time does not exist
+                // happens if user contains temp_data before user joins and user leaves channel
+                // but since we already deleted the entry earlier, temp_time in old_time variable is undefined
+                //
+                // second check means temp time is 0 and time spent is the same as the leave timestamp
+                // in other words, the user left vc without a record in JikanGuildLeaderboardTemp_
+                // happens when user left vc while Jikan application is down or still initializing
 
                 console.log(consoleColor(`User ${member.id} illegal operation in JikanGuildLeaderboardTemp_${guild.id}`, "red"));
 
@@ -72,6 +96,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             // makes sure that you set it to 0
             //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
             // old
+
             await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
             console.log("User %s TEMP time has been deleted", member.id);
 
@@ -80,7 +105,7 @@ module.exports.changeDetected = async (os, ns, client) => {
         }
     } catch (e) {
         if (e instanceof JikanDBError) {
-            console.log(e.reason);
+            console.log(e);
         } else {
             console.log(e.stack);
         }

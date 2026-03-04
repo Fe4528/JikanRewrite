@@ -208,7 +208,7 @@ class JikanMySQLDatabase {
                 // temp leaderboard
             }
         } catch (e) {
-            throw new JikanDBError(e.reason);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -231,7 +231,7 @@ class JikanMySQLDatabase {
 
             return res[0];
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -358,6 +358,8 @@ class JikanMySQLDatabase {
         if (local_lb_exists && temp_lb_exists) {
             return true
         }
+
+        return false
     }
 
     /**
