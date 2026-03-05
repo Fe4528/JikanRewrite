@@ -7,7 +7,10 @@ module.exports = {
     .setDescription('gettables'),
     async run(discord, client, interaction) {
         const tables = await client.database.getTableNames();
-        const msgtosend = tables.map((obj) => obj.table_name).join("\n");
+
+        //console.log(tables);
+
+        const msgtosend = tables.map((obj) => obj.TABLE_NAME).join("\n");
 
         interaction.reply(code_block(msgtosend));
     }

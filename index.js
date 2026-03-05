@@ -74,8 +74,10 @@ client.on('clientReady', async ls => {
         //await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
         //console.log('refreshed global')
 
-        await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
-        console.log('refreshed guild command')
+        //await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
+        //console.log('refreshed guild command')
+
+        console.log("Ready to listen to events")
     } catch(err) {
         console.log(err)
     }
@@ -86,6 +88,8 @@ client.on('voiceStateUpdate', async (os, ns) => {
     if (ns.member.user.bot) return;
 
     //if (ns.guild.id != "930768088121626634") return;
+    // uncomment for testing
+
     const guild_id = ns.guild.id;
     if (!await client.database.checkGuildDBAvailability(guild_id)) {
         console.log(consoleColor(`either JikanGuildLeaderboard and JikanGuildLeaderboardTemp has no record for Guild ${guild_id}`, "yellow"));

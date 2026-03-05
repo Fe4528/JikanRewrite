@@ -1,8 +1,11 @@
 const mysql = require('mysql2/promise');
-const { JikanDBError, consoleColor } = require('./utils.js');
+const { JikanDBError, consoleColor, ms_convert } = require('./utils.js');
 
 class JikanMySQLDatabase {
     constructor() {
+        console.log(consoleColor("Trying to connect to MySQL server", 'yellow'));
+        const time_old = Date.now();
+
         (async () => {
             this.connection = await mysql.createPool({
                 host: process.env.MYSQL_ENDPOINT,
@@ -14,6 +17,9 @@ class JikanMySQLDatabase {
                 queueLimit: 0,
                 port: 3307
             });
+
+            const time_new = Date.now();
+            console.log(consoleColor(`A connection has been made! Took ${ms_convert(time_new - time_old)}`));
         })();
     }
     /*
@@ -72,7 +78,7 @@ class JikanMySQLDatabase {
 
             return res.length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.type}.\nRequested from ${params.guild_id}`);
         } catch (e) {
-            return new JikanDBError(e.message)
+            throw new JikanDBError(e.message)
         } finally {
             if (connection) {
                 connection.release();
@@ -94,7 +100,7 @@ class JikanMySQLDatabase {
 
             return row;
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -121,7 +127,7 @@ class JikanMySQLDatabase {
             if (res.length > 0) return true;
             return false;
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -130,18 +136,19 @@ class JikanMySQLDatabase {
 
     }
 
-    async userExistsInLeaderboard(lb_scope, id) {
+    async userExistsInLeaderboard(lb_scope, user_id, guild_id) {
         let connection;
 
         try {
             connection = await this.connection.getConnection();
 
-            const [res] = await connection.query(`select user_id from ${lb_scope} where user_id = (?)`, [id]);
+            const target = this.getLeaderboardScope(lb_scope, guild_id);
+            const [res] = await connection.query(`select user_id from ${target} where user_id = (?)`, [user_id]);
 
             if (res.length < 1) return false;
             return true;
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -163,12 +170,11 @@ class JikanMySQLDatabase {
         // current_time: either current time or their new (vc time - current_time)
         // mode: UPDATE, SET
         let connection;
-        let tableName = this.getLeaderboardScope(params.type, params.guild_id);
 
         try {
             connection = await this.connection.getConnection();
 
-            const exists = await this.userExistsInLeaderboard(tableName, params.id)
+            const exists = await this.userExistsInLeaderboard(params.type, params.id, params.guild_id)
 
             if (exists) {
                 // means they exist in this leaderboard
@@ -179,6 +185,8 @@ class JikanMySQLDatabase {
                 //
                 // no need to change ID as it can't be changed
                 // by the user
+
+                let tableName = this.getLeaderboardScope(params.type, params.guild_id);
 
                 console.log(consoleColor(`User ${params.id} exists on table: ${tableName}`, "green"));
                 console.log(consoleColor(`User ${params.id}, start ${params.mode} ${params.type}`, "green"));
@@ -219,18 +227,21 @@ class JikanMySQLDatabase {
     }
 
     /**
-     * Get all user vc time in milliseconds
-     * @param {string} user_id
-     * @param {string} guild_id  
+     * Get temp time and local time from a user
+     * @param {string} user_id 
+     * @param {string} guild_id 
+     * @returns 
      */
-    async getAllUserTime(user_id, guild_id) {
+    async getUserTimeFrom(user_id, guild_id, scope) {
         let connection;
 
         try {
             connection = await this.connection.getConnection();
 
-            const [res] = await connection.query(`select userdb.user_id, local.vc_time as local_time, global.vc_time as global_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGlobalLeaderboard as global on userdb.user_id = global.user_id left join JikanGuildLeaderboard_${guild_id} as local on global.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on global.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
-
+            const target = this.getLeaderboardScope(scope, guild_id);
+            //console.log(target);
+            const [res] = await connection.query(`select * from ${target} where user_id = (?)`, [user_id]);
+            
             return res[0];
         } catch (e) {
             throw new JikanDBError(e.message);
@@ -239,32 +250,6 @@ class JikanMySQLDatabase {
                 connection.release();
             }
         }
-
-    }
-
-    /**
-     * Get temp time and local time from a user
-     * @param {string} user_id 
-     * @param {string} guild_id 
-     * @returns 
-     */
-    async getTempTimeAndLocal(user_id, guild_id) {
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const [res] = await connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on userdb.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
-
-            return res[0];
-        } catch (e) {
-            return new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-
     }
 
     /**
@@ -341,7 +326,7 @@ class JikanMySQLDatabase {
 
             return res[0];
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
@@ -384,7 +369,7 @@ class JikanMySQLDatabase {
 
             return res;
         } catch (e) {
-            return new JikanDBError(e.message);
+            throw new JikanDBError(e.message);
         } finally {
             if (connection) {
                 connection.release();
