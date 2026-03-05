@@ -179,6 +179,8 @@ class JikanMySQLDatabase {
                 //
                 // no need to change ID as it can't be changed
                 // by the user
+
+                console.log(consoleColor(`User ${params.id} exists on table: ${tableName}`, "green"));
                 console.log(consoleColor(`User ${params.id}, start ${params.mode} ${params.type}`, "green"));
 
                 if (params.mode == "UPDATE") {

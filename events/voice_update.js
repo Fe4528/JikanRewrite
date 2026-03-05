@@ -13,12 +13,7 @@ module.exports.changeDetected = async (os, ns, client) => {
     }
 
     try {
-        if (ns.channel) {
-            // left or switched channels
-            //
-            // check first if temp time is 0
-            // because it means they haven't joined a vc
-
+        if (ns.channel && !os.channel) {
             const time_now = Date.now();
 
             const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
