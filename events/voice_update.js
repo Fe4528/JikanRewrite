@@ -17,14 +17,16 @@ module.exports.changeDetected = async (os, ns, client) => {
             const time_now = Date.now();
 
             const local_time = await jdb.getTempTimeAndLocal(member.id, guild.id);
-            if (local_time?.temp_time == undefined) {
+
+            console.log(local_time);
+            if (local_time.temp_time === null) {
                 // no data | not joined in vc
                 //
                 // || local_time.temp_time == 0 || local_time.length < 1
 
                 await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: time_now, user_name: member.user.username, mode: "SET" })
                 console.log(`User %s SET time`, member.id);
-            } else if (local_time?.temp_time) {
+            } else if (local_time.temp_time) {
                 // this block runs when user joined the channel and it detects that the user already has temp data
                 //
                 // happens when jikan is down while user left vc, so the user is still recorded in JikanGuildLeaderboardTemp_

@@ -254,7 +254,7 @@ class JikanMySQLDatabase {
         try {
             connection = await this.connection.getConnection();
 
-            const [res] = await connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on local.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
+            const [res] = await connection.query(`select userdb.user_id, local.vc_time as local_time, temp.vc_time as temp_time from JikanUser as userdb left join JikanGuildLeaderboard_${guild_id} as local on userdb.user_id = local.user_id left join JikanGuildLeaderboardTemp_${guild_id} as temp on userdb.user_id = temp.user_id where userdb.user_id = (?)`, [user_id]);
 
             return res[0];
         } catch (e) {
