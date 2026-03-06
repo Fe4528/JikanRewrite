@@ -13,7 +13,7 @@ class JikanMySQLDatabase {
                 password: process.env.MYSQL_PASSWORD,
                 database: process.env.MYSQL_DBNAME,
                 waitForConnections: true,
-                connectionLimit: 5,
+                connectionLimit: 4,
                 queueLimit: 0,
                 port: 3307
             });
@@ -204,6 +204,7 @@ class JikanMySQLDatabase {
             } else {
                 // create entries in order: jikanuser, jikan global db, jikan guild db, temp
                 console.log(consoleColor(`User ${params.id} does not exist / just entered vc. creating entries...`, "red"));
+                console.log("\nCheck parameters if null:\nid (user id): \t%s\nuser_name: \t%s\nguild_id: \t%s\n", params.id, params.user_name, params.guild_id);
 
                 await connection.execute(`insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
                 // user

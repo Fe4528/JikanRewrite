@@ -7,8 +7,13 @@ module.exports.changeDetected = async (os, ns, client) => {
     const guild = ns.guild;
     const member = ns.member;
 
-    if (!ns.member) {
+    if (!os.member || !ns.member) {
         console.log(consoleColor("Cannot find member.", "yellow"));
+        return;
+    }
+
+    if (!guild) {
+        console.log(consoleColor("Cannot find guild.", "yellow"));
         return;
     }
 
@@ -18,7 +23,7 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             const temp_time = await jdb.userExistsInLeaderboard("TEMP", member.id, guild.id);
 
-            console.log(temp_time);
+            //console.log(temp_time);
             if (!temp_time) {
                 // no data | not joined in vc
                 //
@@ -58,19 +63,27 @@ module.exports.changeDetected = async (os, ns, client) => {
             const date = Date;
             const date_now = date.now()
             const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "TEMP");
+
+            if (!old_time?.vc_time) {
+                // if vc_time is undefined for some reason
+
+                // means temp time does not exist
+                // happens if user contains temp_data before user joins and user leaves channel
+                // but since we already deleted the entry earlier, temp_time in old_time variable is undefined
+
+                console.log(consoleColor(`User ${member.id} temp time does not exist, do nothing`, "red"));
+                return
+            }
+
             const time_spent_after_leaving = date_now - old_time.vc_time;
 
             console.log(time_spent_after_leaving, date_now);
-            if (!old_time.vc_time || time_spent_after_leaving == date_now) {
-                // first check means temp_time does not exist
-                // happens if user contains temp_data before user joins and user leaves channel
-                // but since we already deleted the entry earlier, temp_time in old_time variable is undefined
-                //
-                // second check means temp time is 0 and time spent is the same as the leave timestamp
+            if (time_spent_after_leaving == date_now) {
+                // means temp time is 0 and time spent is the same as the leave timestamp
                 // in other words, the user left vc without a record in JikanGuildLeaderboardTemp_
                 // happens when user left vc while Jikan application is down or still initializing
 
-                console.log(consoleColor(`User ${member.id} illegal operation in JikanGuildLeaderboardTemp_${guild.id}`, "red"));
+                console.log(consoleColor(`User ${member.id} time spent in VC is same as today`, "red"));
 
                 await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
 
