@@ -15,22 +15,22 @@ module.exports = {
                 new discord.EmbedBuilder()
                 .setTitle(getLocaleTranslation('en-US', 'commands.dev.localetest.embed.title'))
                 .setDescription(getLocaleTranslation('en-US', 'commands.dev.localetest.embed.description'))
-                .addFields([
+                .addFields(
                     {
                         name: getLocaleTranslation('en-US', 'commands.dev.localetest.embed.missing'),
                         value: getLocaleTranslation('en-US', 'commands.dev.localetest.embed.missingvaluehere')
                     }
-                ]),
+                ),
 
                 new discord.EmbedBuilder()
                 .setTitle(getLocaleTranslation('ja', 'commands.dev.localetest.embed.title'))
                 .setDescription(getLocaleTranslation('ja', 'commands.dev.localetest.embed.description'))
-                .addFields([
+                .addFields(
                     {
                         name: getLocaleTranslation('ja', 'commands.dev.localetest.embed.missing'),
                         value: getLocaleTranslation('ja', 'commands.dev.localetest.embed.missingvaluehere')
                     }
-                ])
+                )
             ]
         })
     }

@@ -1,263 +1,36 @@
-const mysql = require('mysql2/promise');
-const { JikanDBError, consoleColor, ms_convert } = require('./utils.js');
+const mysql = require("mysql2/promise");
+const { JikanDBError, consoleColor, ms_convert } = require("./utils.js");
+const telemetry = require("./telemetry.js");
 
 class JikanMySQLDatabase {
-    constructor() {
-        console.log(consoleColor("Trying to connect to MySQL server", 'yellow'));
-        const time_old = Date.now();
+    static {
+        console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
+        const start = Date.now();
 
-        (async () => {
-            this.connection = await mysql.createPool({
-                host: process.env.MYSQL_ENDPOINT,
-                user: process.env.MYSQL_USER,
-                password: process.env.MYSQL_PASSWORD,
-                database: process.env.MYSQL_DBNAME,
-                waitForConnections: true,
-                connectionLimit: 4,
-                queueLimit: 0,
-                port: 3307
-            });
+        this.pool = mysql.createPool({
+            host: process.env.MYSQL_ENDPOINT,
+            user: process.env.MYSQL_USER,
+            password: process.env.MYSQL_PASSWORD,
+            database: process.env.MYSQL_DBNAME,
+            port: 3307,
+            waitForConnections: true,
+            connectionLimit: 4,
+            queueLimit: 0
+        });
 
-            const time_new = Date.now();
-            console.log(consoleColor(`A connection has been made! Took ${ms_convert(time_new - time_old)}`));
-        })();
-    }
-    /*
-    keepAlive() {
-        let count = 1;
-       
-        setInterval(() => {
-            //this.connection.execute("insert into `JikanGlobalLeaderboard` (user_id, user_name, vc_time) values (?, ?, ?)",["FUCK", "THIS", 1832748937412]);
-            this.connection.execute("select 1=1");
-            console.log("PING %s", count);
-            count++;
-        }, 3000)
-        // idk why but the provided mysql server keeps locking me tf out if the app is idle for a minute
-        // update: ignore this
-    }
-    */
-
-    // TYPES OF SCOPE:
-    //
-    // GLOBAL
-    // LOCAL
-    // TEMP
-
-    /**
-    * Get database scope string for use in query
-    * @param {string} type - Type of database
-    * @param {string} id - guild id
-    * @returns scope of database
-    */
-    getLeaderboardScope(type, id) {
-        switch (type) {
-            case "GLOBAL":
-                return `JikanGlobalLeaderboard`;
-            case "LOCAL":
-                return `JikanGuildLeaderboard_${id}`;
-            case "TEMP":
-                return `JikanGuildLeaderboardTemp_${id}`;
-            default:
-                throw new JikanDBError("Invalid scope.");
-        }
+        console.log(
+            consoleColor(
+                `MySQL pool ready! Took ${ms_convert(Date.now() - start)}`,
+                "green"
+            )
+        );
     }
 
     /**
-     * Get the user in leaderboard
-     * @param {object} params 
-     * @returns user info or JikanDBError
+     * Create data for this guild
+     * @param {string} id
      */
-    async getUser(params) {
-        let tableName = this.getLeaderboardScope(params.type, params.guild_id);
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const [res] = await connection.query(`select * from ${tableName} where user_id = ?`, [params.id]);
-
-            return res.length > 0 ? res[0] : new JikanDBError(`User with ID: ${params.id} is not found.\nDB_SCOPE is ${params.type}.\nRequested from ${params.guild_id}`);
-        } catch (e) {
-            throw new JikanDBError(e.message)
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-    }
-
-    /**
-     * Get table names
-     * @returns array of strings
-     */
-    async getTableNames() {
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const [row] = await connection.query('select table_name from information_schema.tables where table_schema = (?)', [process.env.MYSQL_DBNAME]);
-
-            return row;
-        } catch (e) {
-            throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-        
-    }
-
-    /**
-     * Check if user with the given ID exists in the database
-     * @param {string} user_id 
-     * @returns true or false
-     */
-    async userExists(user_id) {
-        
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            // Just assume that all user created are in this table
-            const [res] = await connection.query('select user_id from JikanUser where user_id = (?)', user_id);
-
-            if (res.length > 0) return true;
-            return false;
-        } catch (e) {
-            throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-
-    }
-
-    async userExistsInLeaderboard(lb_scope, user_id, guild_id) {
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const target = this.getLeaderboardScope(lb_scope, guild_id);
-            const [res] = await connection.query(`select user_id from ${target} where user_id = (?)`, [user_id]);
-
-            if (res.length < 1) return false;
-            return true;
-        } catch (e) {
-            throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-    }
-
-    /**
-     * Updates VC Time for a user
-     * @param {object} params
-     */
-    async updateUserTime(params) {
-        // updates time
-        //
-        // params content:
-        // id: user id
-        // guild_id: guild id
-        // type: GLOBAL, LOCAL, TEMP
-        // current_time: either current time or their new (vc time - current_time)
-        // mode: UPDATE, SET
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const exists = await this.userExistsInLeaderboard(params.type, params.id, params.guild_id)
-
-            if (exists) {
-                // means they exist in this leaderboard
-                // so just update or set it
-                //
-                // take note that we should also update
-                // the username just in case they change it
-                //
-                // no need to change ID as it can't be changed
-                // by the user
-
-                let tableName = this.getLeaderboardScope(params.type, params.guild_id);
-
-                console.log(consoleColor(`User ${params.id} exists on table: ${tableName}`, "green"));
-                console.log(consoleColor(`User ${params.id}, start ${params.mode} ${params.type}`, "green"));
-
-                if (params.mode == "UPDATE") {
-                    await connection.execute(`update ${tableName} set vc_time = vc_time + (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
-                } else if (params.mode == "SET") {
-                    await connection.execute(`update ${tableName} set vc_time = (?), user_name = (?) where user_id = (?)`, [params.current_time, params.user_name, params.id]);
-                } else if (params.mode == "DELETE") {
-                    await connection.execute(`delete from ${tableName} where user_id = (?)`, [params.id]);
-                }
-                else {
-                    return new JikanDBError(`Unsupported mode: ${params.mode}`);
-                }
-            } else {
-                // create entries in order: jikanuser, jikan global db, jikan guild db, temp
-                console.log(consoleColor(`User ${params.id} does not exist / just entered vc. creating entries...`, "red"));
-                console.log("\nCheck parameters if null:\nid (user id): \t%s\nuser_name: \t%s\nguild_id: \t%s\n", params.id, params.user_name, params.guild_id);
-
-                await connection.execute(`insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                // user
-
-                await connection.execute(`insert ignore into JikanGlobalLeaderboard (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                // global leaderboard
-
-                await connection.execute(`insert ignore into JikanGuildLeaderboard_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, 0]);
-                // guild leaderboard (local)
-
-                await connection.execute(`insert ignore into JikanGuildLeaderboardTemp_${params.guild_id} (user_id, user_name, vc_time) values (?, ?, ?)`, [params.id, params.user_name, Date.now()]);
-                // temp leaderboard
-            }
-        } catch (e) {
-            throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-    }
-
-    /**
-     * Get temp time and local time from a user
-     * @param {string} user_id 
-     * @param {string} guild_id 
-     * @returns 
-     */
-    async getUserTimeFrom(user_id, guild_id, scope) {
-        let connection;
-
-        try {
-            connection = await this.connection.getConnection();
-
-            const target = this.getLeaderboardScope(scope, guild_id);
-            //console.log(target);
-            const [res] = await connection.query(`select * from ${target} where user_id = (?)`, [user_id]);
-            
-            return res[0];
-        } catch (e) {
-            throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-    }
-
-    /**
-     * Create server data
-     * @param {string} id The server ID 
-     */
-    async createServerData(id) {
+    static async createServerData(id) {
         let connection;
         // in testing, this should remove the datas because i will
         // simulate an "on join" event so i don't have to
@@ -268,7 +41,6 @@ class JikanMySQLDatabase {
         // but we're not waiting for any data so
         // it should be good
         try {
-            connection = await this.connection.getConnection();
             const [test_for_settings] = await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id]);
             //console.log(test_for_settings[0].server_id == undefined);
 
@@ -277,18 +49,20 @@ class JikanMySQLDatabase {
 
                 console.log(consoleColor(`No JikanGuildLeaderboardSettings for ${id}, creating...`, "yellow"));
 
-                await connection.execute('insert into JikanGuildLeaderboardSettings (server_id) values (?)', [id]);
+                await this.pool.execute('insert into JikanGuildLeaderboardSettings (server_id) values (?)', [id]);
 
-                console.log(consoleColor(`Guild ${id} JikanGuildLeaderboardSettings entry has been created.,`, "green"));
-            } else {
+                console.log(consoleColor(`Guild ${id} JikanGuildLeaderboardSettings entry has been created., `, "green"));
+            }
+            else {
                 console.log(consoleColor(`JikanGuildLeaderboardSettings for ${id} already exists, continue`, "green"));
             }
 
             if (!await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`)) {
                 console.log(consoleColor(`Creating JikanGuildLeaderboard_${id} because it does not exist`, "yellow"));
 
-                await connection.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-            } else {
+                await this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            }
+            else {
                 console.log(consoleColor(`JikanGuildLeaderboard_${id} already exists, continue`, "green"));
             }
 
@@ -298,15 +72,20 @@ class JikanMySQLDatabase {
 
                 console.log(consoleColor(`Creating JikanGuildLeaderboardTemp_${id} because it does not exist`, "yellow"));
 
-                await connection.execute(`create table if not exists JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-            } else {
+                await this.pool.execute(`create table if not exists JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            }
+            else {
                 console.log(consoleColor(`JikanGuildLeaderboardTemp_${id} exists, continue`, "yellow"));
             }
-            
+
+            telemetry.log("create_server_data", "_calls");
             console.log(consoleColor(`Finished initializing server data for ${id}`, "green"));
         } catch (e) {
+            telemetry.log("create_server_data", "_errors");
+
             throw new JikanDBError(e.message);
-        } finally {
+        }
+        finally {
             if (connection) {
                 connection.release();
             }
@@ -314,67 +93,228 @@ class JikanMySQLDatabase {
     }
 
     /**
-     * Check if table exists (internal use only i think)
-     * @param {string} table_name 
+     * Get all user time
+     * @param {string} user_id - user id
+     * @param {string} guild_id - the guild id
      */
-    async checkIfDBTableExists(table_name) {
-        let connection;
-
+    static async getAllUserTime(user_id, guild_id) {
         try {
-            connection = await this.connection.getConnection();
+            const [rows] = await this.pool.query(
+                `select 
+                    userdb.user_id,
+                    local.vc_time as local_time,
+                    global.vc_time as global_time,
+                    temp.vc_time as temp_time
+                from JikanUser
+                    as userdb
+                left join JikanGlobalLeaderboard
+                    as global on userdb.user_id = global.user_id
+                left join JikanGuildLeaderboard_${guild_id} 
+                    as local on global.user_id = local.user_id
+                left join JikanGuildLeaderboardTemp_${guild_id} 
+                    as temp on global.user_id = temp.user_id
+                where userdb.user_id = (?)`, [user_id]
+            );
 
-            const [res] = await connection.query(`show tables like ?`, [table_name]);
+            telemetry.log("get_all_user_time", "_calls");
 
-            return res[0];
+            return rows[0];
         } catch (e) {
+            telemetry.log("get_all_user_time", "_errors");
             throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
         }
-
     }
 
     /**
-     * Check if all db is valid
+     * Get banlist
      */
-    async checkGuildDBAvailability(id) {
-        const local_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`);
-        const temp_lb_exists = await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)
+    static async getBanList() {
+        try {
+            const [rows] = await this.pool.query(
+                `select id from JikanBannedIDs`
+            );
 
-        if (local_lb_exists && temp_lb_exists) {
-            return true
+            telemetry.log("get_ban_list", "_calls");
+
+            return rows;
         }
-
-        return false
+        catch (e) {
+            telemetry.log("get_ban_list", "_errors");
+            throw new JikanDBError(e.message);
+        }
     }
 
     /**
-     * Get leaderboard from type
+     * Get leaderboard
      * @param {string} type
      * @param {string} guild_id
-     * @param {string} what_to_order - the column to order by
-     * @param {string} order - "asc" or "desc"
-     * @returns {Array} Array of users in leaderboard
+     * @param {string} value
+     * @param {string} order
      */
-    async getLeaderboardFrom(type, guild_id = null, value = "vc_time", order = "desc") {
-        let connection;
+    static async getLeaderboardFrom(type, guild_id = null, value = "vc_time", order = "desc") {
+        try {
+            const table = this.getLeaderboardScope(type, guild_id);
+            const [rows] = await this.pool.query(
+                `select * from ${table} order by ${value} ${order}`
+            );
+
+            telemetry.log("get_leaderboard_from", "_calls");
+            return rows;
+        }
+        catch (e) {
+            telemetry.log("get_leaderboard_from", "_errors");
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    /**
+     * Get leaderboard table name
+     * @param {string} type GLOBAL | LOCAL | TEMP
+     * @param {string} guild_id
+     */
+    static getLeaderboardScope(type, guild_id) {
+        telemetry.log("get_leaderboard_scope", "_calls");
+
+        switch (type) {
+            case "GLOBAL":
+                return "JikanGlobalLeaderboard";
+            case "LOCAL":
+                return `JikanGuildLeaderboard_${guild_id}`;
+            case "TEMP":
+                return `JikanGuildLeaderboardTemp_${guild_id}`;
+            default:
+                telemetry.log("get_leaderboard_scope", "_errors");
+                throw new JikanDBError("Invalid leaderboard scope");
+        }
+    }
+
+    /**
+     * Get user from leaderboard
+     * @param {object} params
+     * @returns {object|null}
+     */
+    static async getUser(params) {
+        try {
+            const table = this.getLeaderboardScope(params.type, params.guild_id);
+
+            const [rows] = await this.pool.query(
+                `select * from ${table} where user_id = ?`,
+                [params.id]
+            );
+
+            telemetry.log("get_user", "_calls");
+            return rows.length ? rows[0] : null;
+
+        }
+        catch (e) {
+            telemetry.log("get_user", "_errors");
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    /**
+     * Get time entry from leaderboard
+     * @param {string} user_id
+     * @param {string} guild_id
+     * @param {string} scope
+     * @returns {object|null}
+     */
+    static async getUserTimeFrom(user_id, guild_id, scope) {
 
         try {
-            connection = await this.connection.getConnection();
+            const table = this.getLeaderboardScope(scope, guild_id);
+            const [rows] = await this.pool.query(
+                `select * from ${table} where user_id = ?`,
+                [user_id]
+            );
 
-            const scope = this.getLeaderboardScope(type, guild_id);
-
-            const [res] = await connection.query(`select * from ${scope} order by ${value} ${order}`);
-
-            return res;
-        } catch (e) {
+            telemetry.log("get_user_time_from", "_calls");
+            return rows.length ? rows[0] : null;
+        }
+        catch (e) {
+            telemetry.log("get_user_time_from", "_errors");
             throw new JikanDBError(e.message);
-        } finally {
-            if (connection) {
-                connection.release();
+        }
+    }
+
+    /**
+     * Update user VC time
+     * @param {object} params
+     */
+    static async updateUserTime(params) {
+        try {
+            if (!params.id || (!params.user_name && params.mode !== "DELETE") || !params.guild_id) {
+                console.log("One or more param is missing");
+                return;
             }
+
+            const table = this.getLeaderboardScope(params.type, params.guild_id);
+            if (params.mode == "DELETE") {
+                await this.pool.query(
+                    `delete from ${table} where user_id = ?`,
+                    [params.id]
+                );
+                return;
+            }
+
+            let query;
+
+            if (params.mode == "UPDATE") {
+                query = `
+                insert into ${table} (user_id, user_name, vc_time)
+                values (?, ?, ?)
+                on duplicate key update
+                    vc_time = vc_time + values(vc_time),
+                    user_name = values(user_name)
+                `;
+            }
+            else if (params.mode == "SET") {
+                query = `
+                insert into ${table} (user_id, user_name, vc_time)
+                values (?, ?, ?)
+                on duplicate key update
+                    vc_time = values(vc_time),
+                    user_name = values(user_name)
+                `;
+            }
+            else {
+                throw new JikanDBError(`Unsupported mode: ${params.mode}`);
+            }
+
+            await this.pool.query(query, [
+                params.id,
+                params.user_name,
+                params.current_time
+            ]);
+
+            telemetry.log("update_user_time", "_calls");
+        }
+        catch (e) {
+
+            telemetry.log("update_user_time", "_errors");
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    /**
+     * Check if user exists globally
+     * @param {string} user_id
+     * @returns {boolean}
+     */
+    static async userExists(user_id) {
+
+        try {
+            const [rows] = await this.pool.query(
+                "select 1 from JikanUser where user_id = ? limit 1",
+                [user_id]
+            );
+
+            telemetry.log("user_exists", "_calls");
+            return rows.length > 0;
+        }
+        catch (e) {
+            telemetry.log("user_exists", "_errors");
+            throw new JikanDBError(e.message);
         }
     }
 }

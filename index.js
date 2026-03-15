@@ -7,24 +7,20 @@ const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
 const { is_devcommand, JikanDBError, consoleColor } = require('./utils.js')
 const discord = require('discord.js')
 const jmysql = require('./jikan_mysql_manager.js');
-const db = new jmysql();
 const voice_update_module = require('./events/voice_update.js');
 
-/////
 const commands_array = [];
 const dev_commands_array = [];
 const dev_commands_names = [];
 const command_files = fs.readdirSync('./commands/public/').filter(file => file.endsWith('.js'));
 const dev_command_files = fs.readdirSync('./commands/dev/').filter(file => file.endsWith('.js'));
-/////
 
-/////
+
 for (let file of dev_command_files) {
     const command = require(`./commands/dev/${file}`)
     if (command.data) {
         dev_commands_array.push(command.data.toJSON());
         dev_commands_names.push(command.data.name);
-        // console.log(command.data.toJSON())
     }
 }
 
@@ -32,21 +28,26 @@ for (let file of command_files) {
     const command = require(`./commands/public/${file}`)
     if (command.data) {
         commands_array.push(command.data.toJSON())
-        // console.log(command.data.toJSON())
     }
 }
-/////
+
+const banlist_cache = new Set();
 
 const client = new discord.Client({
     intents: ['Guilds', "GuildVoiceStates"]
 });
 
-client.database = db;
+client.database = jmysql;
 
 client.on('interactionCreate', async interaction => {
+    let module;
+
+    if (banlist_cache.has(interaction.user.id) || banlist_cache.has(interaction.guild.id)) {
+        interaction.reply("The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)")
+        return;
+    }
+
     if (interaction.isChatInputCommand()) {
-        let module;
-        
         console.log(is_devcommand(interaction.commandName, dev_commands_names));
         if (is_devcommand(interaction.commandName, dev_commands_names)) {
             if (!interaction.user.id == process.env.OWNER_ID) {
@@ -62,9 +63,23 @@ client.on('interactionCreate', async interaction => {
         } catch (e) {
             if (e instanceof JikanDBError) {
                 interaction.reply("Fatal error ID 10001");
+            } else {
+                throw new Error(e.message);
             }
         }
-        
+    }
+
+    if (interaction.isButton()) {
+        try {
+            module = require("./events/button.js")
+            module.run(discord, client, interaction);
+        } catch (e) {
+            if (e instanceof JikanDBError) {
+                interaction.reply("Fatal error ID 10001");
+            } else {
+                throw new Error(e.message);
+            }
+        }
     }
 })
 
@@ -74,8 +89,8 @@ client.on('clientReady', async ls => {
         //await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
         //console.log('refreshed global')
 
-        //await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
-        //console.log('refreshed guild command')
+        await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
+        console.log('refreshed guild commands')
 
         console.log("Ready to listen to events")
     } catch(err) {
@@ -90,10 +105,17 @@ client.on('voiceStateUpdate', async (os, ns) => {
     //if (ns.guild.id != "930768088121626634") return;
     // uncomment for testing
 
+    /*
     const guild_id = ns.guild.id;
     if (!await client.database.checkGuildDBAvailability(guild_id)) {
         console.log(consoleColor(`either JikanGuildLeaderboard and JikanGuildLeaderboardTemp has no record for Guild ${guild_id}`, "yellow"));
         await client.database.createServerData(ns.guild.id)
+    }
+    */
+
+    if (banlist_cache.has(ns.member.id) || banlist_cache.has(ns.guild.id)) {
+        interaction.reply("The user/server is not allowed to use Jikan. Performing data reset.")
+        return;
     }
 
     if (os.channel !== ns.channel) {
@@ -101,7 +123,17 @@ client.on('voiceStateUpdate', async (os, ns) => {
     }
 })
 
-client.login(process.env.BOT_TOKEN).then(async() => {
+client.on('guildCreate', async guild => {
+    client.database.createServerData(guild.id)
+})
+
+client.login(process.env.BOT_TOKEN).then(async () => {
+    const fetched_banlist = await client.database.getBanList();
+
+    fetched_banlist.forEach((e) => {
+        banlist_cache.add(e.id);
+    })
+
     console.log("Online")
 })
 

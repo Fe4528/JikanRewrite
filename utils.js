@@ -142,7 +142,8 @@ module.exports.value_strings = {
  * Get the locale translation for a given key.
  * You can just put any gibberish like "sdjakhfjkshfkkjshdf" to make it return the default locale (en-US)
  * @param {object} interaction 
- * @param {string} key 
+ * @param {string} key
+ * @param {'en-US' | 'ja'} locale
  */
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);

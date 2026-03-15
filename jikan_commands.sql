@@ -9,8 +9,8 @@ create table Jikan (
 	announcement_message text
 );
 
-create table JikanBannedUsers (
-	user_id varchar(30) primary key not null
+create table JikanBannedIDs(
+	guild_id varchar(30) primary key not null
 );
 
 create table JikanGuildLeaderboardSettings (
@@ -21,16 +21,16 @@ create table JikanGuildLeaderboardSettings (
 	ignored_role varchar(30)
 );
 
-create table JikanGuildLeaderboard_930768088121626634 (
+create table JikanGuildLeaderboard_1122615524942155841 (
 	user_id varchar(30) primary key not null,
     user_name varchar(50) not null,
     vc_time bigint not null
 );
 
-create table JikanGuildLeaderboardTemp_930768088121626634 (
+create table JikanGuildLeaderboardTemp_1122615524942155841 (
 	user_id varchar(30) primary key not null,
     user_name varchar(50) not null,
-    vc_time bigint not null
+    join_time bigint not null
 );
 
 create table JikanGlobalLeaderboard (
@@ -38,6 +38,7 @@ create table JikanGlobalLeaderboard (
     user_name varchar(50) not null,
     vc_time bigint not null
 );
+
 
 -- flat ver.
 --

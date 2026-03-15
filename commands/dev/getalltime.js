@@ -1,13 +1,33 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { code_block, ms_convert, getLocaleTranslation } = require('../../utils');
+const { ms_convert, getLocaleTranslation } = require('../../utils');
 
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('getalltime')
-    .setDescription(getLocaleTranslation('en-US', 'commands.dev.getalltime.description')),
+    .setDescription(getLocaleTranslation('en-US', 'commands.public.mystats.description')),
     async run(discord, client, interaction) {
         const time = await client.database.getAllUserTime(interaction.user.id, interaction.guild.id);
-        interaction.reply(code_block(`USER: ${time.user_id}\n\nGLOBAL: ${time.global_time} (${ms_convert(time.global_time)})\nLOCAL: ${time.local_time} (${ms_convert(time.local_time)})\nTEMP: ${time.temp_time} (${ms_convert(time.temp_time)})`));
+        const time_now = Date.now();
+        const time_embed = new discord.EmbedBuilder()
+        .setTitle(getLocaleTranslation('en-US', 'commands.public.mystats.embed.title', interaction.user.username))
+        .addFields(
+            {
+                name: getLocaleTranslation('en-US', 'commands.public.mystats.embed.global_field_name'),
+                value: ms_convert(time.global_time)
+            },
+            {
+                name: interaction.guild.name,
+                value: ms_convert(time.local_time)
+            },
+            {
+                name: getLocaleTranslation('en-US', 'commands.public.mystats.embed.realtime_field_name'),
+                value: !time?.temp_time ? getLocaleTranslation('en-US', 'commands.public.mystats.embed.not_in_vc') : ms_convert(time_now - time.temp_time)
+            }
+        )
+
+        interaction.reply({
+            embeds: [time_embed]
+        })
     }
 }

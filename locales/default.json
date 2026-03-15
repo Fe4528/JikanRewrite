@@ -1,93 +1,103 @@
 {
-    "translator": "Default (@fe4528)",
-    "commands": {
-        "dev": {
-            "devtest": {
-                "description": "developer testing command"
-            },
-            "getalltime": {
-                "description": "get a user's all time"
-            },
-            "getuser": {
-                "description": "get user by id",
-                "options": {
-                    "user_id": {
-                        "description": "id of the user to get"
-                    }
-                }
-            },
-            "localetest": {
-                "embed": {
-                    "title": "en-US title",
-                    "description": "en-US description",
-                    "missing": "Missing/not translated section"
-                }
-            }
-        },
-        "public": {
-            "about": {
-                "description": "About Jikan",
-                "embed": {
-                    "_title_comment": "Title doesn't need translation",
-                    "title": "Jikan",
-                    "description": {
-                        "creator": "Made by {0}",
-                        "user_count": "User count: {0}"
-                    },
-                    "fields": {
-                        "server_count": {
-                            "name": "Server Count"
-                        },
-                        "ping": {
-                            "name": "Latency"
-                        },
-                        "hardware": {
-                            "name": "Useless Information",
-                            "value": "CPU: {0}\nCPU Usage: {1}%\nOS: {2}"
-                        }
-                    }
-                }
-            },
-            "leaderboards": {
-                "description": "View VC Leaderboards",
-                "options": {
-                    "scope": {
-                        "description": "Leaderboard to show"
-                    },
-                    "value": {
-                        "description": "Which value"
-                    },
-                    "order": {
-                        "description": "Ascending or Descending"
-                    }
-                },
-                "embeds": {
-                    "sort_footer": "Sorting by {0} in {1} order"
-                }
-            }
-        }
-    },
-    "common": {
-        "ok": "OK",
-        "cancel": "Cancel",
-        "yes": "Yes",
-        "no": "No",
+	"translator": "Default (@fe4528)",
+	"commands": {
+		"dev": {
+			"devtest": {
+				"description": "developer testing command"
+			},
+			"getalltime": {
+				"description": "get a user's all time"
+			},
+			"getuser": {
+				"description": "get user by id",
+				"options": {
+					"user_id": {
+						"description": "id of the user to get"
+					}
+				}
+			},
+			"localetest": {
+				"embed": {
+					"title": "en-US title",
+					"description": "en-US description",
+					"missing": "Missing/not translated section"
+				}
+			}
+		},
+		"public": {
+			"about": {
+				"description": "About Jikan",
+				"embed": {
+					"_title_comment": "Title doesn't need translation",
+					"title": "Jikan",
+					"description": {
+						"creator": "Made by {0}",
+						"user_count": "User count: {0}"
+					},
+					"fields": {
+						"server_count": {
+							"name": "Server Count"
+						},
+						"ping": {
+							"name": "Latency"
+						},
+						"hardware": {
+							"name": "Useless Information",
+							"value": "CPU: {0}\nCPU Usage: {1}%\nOS: {2}"
+						}
+					}
+				}
+			},
 
-        "vc_time": "VC Time",
-        "user_id": "User ID",
-        "user_name": "Username",
+			"mystats": {
+				"description": "Check all your VC TIme",
+				"embed": {
+					"title": "{0}'s VC Time",
+					"global_field_name": "Global",
+					"realtime_field_name": "Realtime VC (in this server)",
+					"not_in_vc": "You need to join a VC first"
+				}
+			},
+			"leaderboards": {
+				"description": "View VC Leaderboards",
+				"options": {
+					"scope": {
+						"description": "Leaderboard to show"
+					},
+					"value": {
+						"description": "Which value"
+					},
+					"order": {
+						"description": "Ascending or Descending"
+					}
+				},
+				"embeds": {
+					"sort_footer": "Sorting by {0} in {1} order"
+				}
+			}
+		}
+	},
+	"common": {
+		"ok": "OK",
+		"cancel": "Cancel",
+		"yes": "Yes",
+		"no": "No",
 
-        "asc": "Ascending",
-        "desc": "Descending",
-        
-        "realtime": "Realtime",
-        "global": "Global",
-        "local": "Local"
-    },
-    "leaderboard_titles": {
-        "_comment": "realtime and local need a {0} for the server name, will not use this if they set a custom title",
-        "realtime": "{0} | Realtime VC Leaderboard",
-        "global": "Global VC Leaderboard",
-        "local": "{0} | Local VC Leaderboard"
-    }
+		"vc_time": "VC Time",
+		"user_id": "User ID",
+		"user_name": "Username",
+
+		"asc": "Ascending",
+		"desc": "Descending",
+
+		"realtime": "Realtime",
+		"global": "Global",
+		"local": "Local"
+	},
+	"leaderboard_titles": {
+		"_comment": "realtime and local need a {0} for the server name, will not use this if they set a custom title",
+		"realtime": "{0} | Realtime VC Leaderboard",
+		"global": "Global VC Leaderboard",
+		"local": "{0} | Local VC Leaderboard"
+	}
 }
