@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { getLocaleTranslation } = require('../../utils');
+const { getLocaleTranslation } = require('../../static/utils.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,5 +10,6 @@ module.exports = {
     }),
     async run(discord, client, interaction) {
         interaction.reply("dev test");
+        // sdkjmfhkjdshf
     }
 }

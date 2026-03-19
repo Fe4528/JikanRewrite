@@ -4,34 +4,40 @@ loadEnvFile('.env');
 
 const { REST, Routes } = require('discord.js');
 const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
-const { is_devcommand, JikanDBError, consoleColor } = require('./utils.js')
+const { JikanDBError, consoleColor } = require('./static/utils.js')
 const discord = require('discord.js')
-const jmysql = require('./jikan_mysql_manager.js');
+const jmysql = require('./static/jikan_mysql_manager.js');
 const voice_update_module = require('./events/voice_update.js');
+const path = require('path');
+const refresh_modules = require('./refresh_modules.js');
+
+const commands_map = new Map();
+const dev_commands_map = new Map();
+const banlist_cache = new Set();
 
 const commands_array = [];
 const dev_commands_array = [];
-const dev_commands_names = [];
+
 const command_files = fs.readdirSync('./commands/public/').filter(file => file.endsWith('.js'));
 const dev_command_files = fs.readdirSync('./commands/dev/').filter(file => file.endsWith('.js'));
 
+const button_events = require('./events/button.js');
 
 for (let file of dev_command_files) {
     const command = require(`./commands/dev/${file}`)
     if (command.data) {
+        dev_commands_map.set(command.data.name, path.resolve(__dirname, 'commands', 'dev', file));
         dev_commands_array.push(command.data.toJSON());
-        dev_commands_names.push(command.data.name);
     }
 }
 
 for (let file of command_files) {
     const command = require(`./commands/public/${file}`)
     if (command.data) {
+        commands_map.set(command.data.name, path.resolve(__dirname, 'commands', 'public', file));
         commands_array.push(command.data.toJSON())
     }
 }
-
-const banlist_cache = new Set();
 
 const client = new discord.Client({
     intents: ['Guilds', "GuildVoiceStates"]
@@ -40,26 +46,27 @@ const client = new discord.Client({
 client.database = jmysql;
 
 client.on('interactionCreate', async interaction => {
-    let module;
+    const is_dev = dev_commands_map.has(interaction.commandName);
 
     if (banlist_cache.has(interaction.user.id) || banlist_cache.has(interaction.guild.id)) {
-        interaction.reply("The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)")
+        await interaction.reply("The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)")
         return;
     }
 
     if (interaction.isChatInputCommand()) {
-        console.log(is_devcommand(interaction.commandName, dev_commands_names));
-        if (is_devcommand(interaction.commandName, dev_commands_names)) {
-            if (!interaction.user.id == process.env.OWNER_ID) {
+        let command;
+
+        if (is_dev) {
+            if (interaction.user.id !== process.env.OWNER_ID) {
                 return interaction.reply("not developer (from index.js)");
             }
-            module = require(`./commands/dev/${interaction.commandName}.js`)
+            command = require.cache[dev_commands_map.get(interaction.commandName)];
         } else {
-            module = require(`./commands/public/${interaction.commandName}.js`)
+            command = require.cache[commands_map.get(interaction.commandName)];
         }
 
         try {
-            module.run(discord, client, interaction);
+            command.exports.run(discord, client, interaction);
         } catch (e) {
             if (e instanceof JikanDBError) {
                 interaction.reply("Fatal error ID 10001");
@@ -71,8 +78,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton()) {
         try {
-            module = require("./events/button.js")
-            module.run(discord, client, interaction);
+            button.exports.run(discord, client, interaction);
         } catch (e) {
             if (e instanceof JikanDBError) {
                 interaction.reply("Fatal error ID 10001");
@@ -84,9 +90,8 @@ client.on('interactionCreate', async interaction => {
 })
 
 client.on('clientReady', async ls => {
-    //refresh_modules()
     try {
-        //await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
+        //await rest.put(Routes.applicationCommands(client.user.id), { body: [] });
         //console.log('refreshed global')
 
         await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
@@ -114,7 +119,7 @@ client.on('voiceStateUpdate', async (os, ns) => {
     */
 
     if (banlist_cache.has(ns.member.id) || banlist_cache.has(ns.guild.id)) {
-        interaction.reply("The user/server is not allowed to use Jikan. Performing data reset.")
+        //interaction.reply("The user/server is not allowed to use Jikan. Performing data reset.")
         return;
     }
 
@@ -128,13 +133,17 @@ client.on('guildCreate', async guild => {
 })
 
 client.login(process.env.BOT_TOKEN).then(async () => {
-    const fetched_banlist = await client.database.getBanList();
+    try {
+        const fetched_banlist = await client.database.getBanList();
 
-    fetched_banlist.forEach((e) => {
-        banlist_cache.add(e.id);
-    })
-
-    console.log("Online")
+        fetched_banlist.forEach((e) => {
+            banlist_cache.add(e.id);
+        })
+    } catch (e) {
+        throw new Error(e.message);
+    } finally {
+        console.log("Online")
+    }
 })
 
 process.on('uncaughtException', (a) => {

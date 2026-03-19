@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js')
-const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../utils');
+const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils');
+const { lodash_chunk: chunk } = require('lodash');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,17 +15,17 @@ module.exports = {
             {
                 name: getLocaleTranslation('en-US', 'common.global'),
                 name_localizations: localizationTemplate('common.global'),
-                value: 'GLOBAL' 
+                value: 'global' 
             },
             { 
                 name: getLocaleTranslation('en-US', 'common.local'),
                 name_localizations: localizationTemplate('common.local'),
-                value: 'LOCAL' 
+                value: 'local' 
             },
             { 
                 name: getLocaleTranslation('en-US', 'common.realtime'),
                 name_localizations: localizationTemplate('common.realtime'),
-                value: 'TEMP' 
+                value: 'realtime' 
             }
         )
         .setRequired(true)
@@ -71,16 +72,18 @@ module.exports = {
         )
     ),
     async run(discord, client, interaction) {
-        const selected_scope = interaction.options.getString('scope') || 'GLOBAL';
+        const selected_scope = interaction.options.getString('scope') || 'global';
         const selected_value = interaction.options.getString('value') || 'vc_time';
         const selected_order = interaction.options.getString('order') || 'desc';
         
-        const lb = await client.database.getLeaderboardFrom(
+        let lb = await client.database.getLeaderboardFrom(
             selected_scope, 
             interaction.guild.id, 
             selected_value,
             selected_order
         );
+
+        //lb = lb.slice(0, 1)
 
         // build embed
         // the structure of lb are as follows:
@@ -92,20 +95,30 @@ module.exports = {
         console.log(lb);
 
         let leaderboard_contents = "";
-        lb.forEach((user, index) => {
-            leaderboard_contents += `${index + 1}. ${user.user_name} ${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${selected_scope == "TEMP" && user.vc_time != 0 
-                ? ms_convert(Date.now() - user.vc_time) 
-                : ms_convert(user.vc_time)}\n`;
-            // if TEMP is selected, vc_time is actually the timestamp they joined, so we need to do Date.now() - vc_time
-            // to get their current time in VC.
-            //
-            // Now if the vc_time is 0, it means they are not in VC, so we just show 0.000s
-        });
+        let embed;
 
+        if (lb.length > 0) {
+            lb.forEach((user, index) => {
+                leaderboard_contents += `${index + 1}. ${user.user_name} ${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${selected_scope == "realtime" && user.vc_time != 0
+                    ? ms_convert(Date.now() - user.vc_time)
+                    : ms_convert(user.vc_time)}\n`;
+                // if TEMP is selected, vc_time is actually the timestamp they joined, so we need to do Date.now() - vc_time
+                // to get their current time in VC.
+                //
+                // Now if the vc_time is 0, it means they are not in VC, so we just show 0.000s
+            });
+        }
 
-        const embed = new discord.EmbedBuilder()
-            .setTitle(selected_scope == 'GLOBAL' ? getLocaleTranslation(interaction.locale, 'leaderboard_titles.global') : selected_scope == 'LOCAL' ? `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.local', interaction.guild.name)}` : `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.realtime', interaction.guild.name)}`)
-            .setDescription(`${code_block(leaderboard_contents)}\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer', getLocaleTranslation(interaction.locale, `common.${selected_value}`), getLocaleTranslation(interaction.locale, `common.${selected_order}`))}`)
+        embed = new discord.EmbedBuilder()
+            .setTitle(selected_scope == 'global' ? getLocaleTranslation(interaction.locale, 'leaderboard_titles.global') : selected_scope == 'local' ? `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.local', interaction.guild.name)}` : `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.realtime', interaction.guild.name)}`)
+            .setDescription(`${
+                lb.length > 0 ? code_block(leaderboard_contents) :
+                `:warning: ${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users',
+                    getLocaleTranslation(interaction.locale, `leaderboard_titles.${selected_scope}`))} :warning:\n\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason')}`}\n
+                ${
+                getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
+                getLocaleTranslation(interaction.locale, `common.${selected_value}`),
+                getLocaleTranslation(interaction.locale, `common.${selected_order}`))}`)
             .setColor('#0099ff');
         interaction.reply({ embeds: [embed] });
     }

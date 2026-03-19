@@ -1,5 +1,5 @@
-const { code_block } = require('../utils.js');
-const telemetry = require('../telemetry.js');
+const { code_block } = require('../static/utils.js');
+const telemetry = require('../static/telemetry.js');
 
 module.exports = {
     async run(discord, client, interaction) {

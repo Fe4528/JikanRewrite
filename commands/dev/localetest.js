@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { getLocaleTranslation } = require('../../utils');
+const { getLocaleTranslation } = require('../../static/utils.js');
 
 module.exports = {
     data: new SlashCommandBuilder()

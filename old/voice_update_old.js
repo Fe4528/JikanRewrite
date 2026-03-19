@@ -25,7 +25,7 @@ module.exports.changeDetected = async (os, ns, client) => {
         {
             const date = Date;
 
-            const temp_time = await jdb.userExistsInLeaderboard("TEMP", member.id, guild.id);
+            const temp_time = await jdb.userExistsInLeaderboard("REALTIME", member.id, guild.id);
 
             //console.log(temp_time);
             if (!temp_time)
@@ -34,7 +34,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 //
                 // || local_time.temp_time == 0 || local_time.length < 1
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: date.now(), user_name: member.user.username, mode: "SET" })
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: date.now(), user_name: member.user.username, mode: "SET" })
                 console.log(`User % s SET time`, member.id);
             }
             else if (temp_time)
@@ -46,7 +46,7 @@ module.exports.changeDetected = async (os, ns, client) => {
 
                 console.log(consoleColor(`User ${ member.id}
                 already has record in JikanGuildLeaderboardTemp_${ guild.id}, removing entry`, "red"));
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
                 console.log(consoleColor(`User ${ member.id}
                 entry deletion JikanGuildLeaderboardTemp_${ guild.id}
                 DONE`, "red"));
@@ -77,7 +77,7 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             const date = Date;
             const date_now = date.now()
-            const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "TEMP");
+            const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "REALTIME");
 
             if (!old_time?.vc_time)
             {
@@ -104,7 +104,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 console.log(consoleColor(`User ${ member.id}
                 time spent in VC is same as today`, "red"));
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
+                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
 
                 console.log(consoleColor(`User ${ member.id}
                 temp time record has been deleted in JikanGuildLeaderboardTemp_${ guild.id}`, "green"));
@@ -122,10 +122,10 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             // reset temp data
             // makes sure that you set it to 0
-            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", current_time: 0, user_name: member.user.username, mode: "SET" });
+            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: 0, user_name: member.user.username, mode: "SET" });
             // old
 
-            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "TEMP", mode: "DELETE" });
+            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
             console.log("User %s TEMP time has been deleted", member.id);
 
             console.log("User %s left Channel %s", member.id, os.channel.id)

@@ -55,7 +55,7 @@ class JikanMySQLDatabase {
         case "LOCAL":
             return `JikanGuildLeaderboard_${id
         }`;
-            case "TEMP":
+            case "REALTIME":
                 return `JikanGuildLeaderboardTemp_${id
     }`;
             default:

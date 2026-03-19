@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { JikanDBError, code_block, ms_convert, getLocaleTranslation } = require('../../utils');
+const { JikanDBError, code_block, ms_convert, getLocaleTranslation } = require('../../static/utils.js');
 
 module.exports = {
     data: new SlashCommandBuilder()

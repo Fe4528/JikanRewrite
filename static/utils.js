@@ -1,21 +1,25 @@
-const { WebhookClient } = require("discord.js")
+const { WebhookClient } = require("discord.js");
+const path = require("path");
 const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
 })
-const locale_cache = {};
 
 function load_locale(locale) {
-    if (locale_cache[locale]) {
-        return locale_cache[locale];
+    let locale_file;
+
+    locale_file = require.cache[path.resolve('../', 'locales', `${locale}.json`)];
+
+    if (locale_file) {
+        return locale_file.exports;
     }
 
     try {
-        locale_cache[locale] = require(`./locales/${locale}.json`);
+        // if locale exists
+        return require(`../locales/${locale}.json`);
     } catch {
-        locale_cache[locale] = require(`./locales/default.json`);
+        // fallback to en-US
+        return require(`../locales/default.json`);
     }
-
-    return locale_cache[locale];
 }
 
 const console_colors = {
@@ -57,16 +61,6 @@ class JikanDBError extends Error {
  * Exports
  */
 module.exports.JikanDBError = JikanDBError;
-
-/**
- * Check if command is a dev command
- * @param {string} command 
- * @param {Array} dev_list 
- * @returns 
- */
-module.exports.is_devcommand = (command, dev_list) => {
-    return dev_list.includes(command);
-}
 
 /**
  * Not yet implemented
@@ -122,23 +116,6 @@ module.exports.ms_convert = (ms) => {
 }
 
 /**
- * Strings for leaderboards (should be on localization json tbh)
- */
-module.exports.order_strings = {
-    'asc': 'Ascending',
-    'desc': 'Descending'
-}
-
-/**
- * Strings for leaderboards (should be on localization json tbh)
- */
-module.exports.value_strings = {
-    'vc_time': 'VC Time',
-    'user_id': 'User ID',
-    'user_name': 'User Name'
-}
-
-/**
  * Get the locale translation for a given key.
  * You can just put any gibberish like "sdjakhfjkshfkkjshdf" to make it return the default locale (en-US)
  * @param {object} interaction 
@@ -155,6 +132,11 @@ module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     });
 };
 
+/**
+ * Template for localization
+ * @param {any} key
+ * @returns object
+ */
 module.exports.localizationTemplate = (key) => ({
     'ja': module.exports.getLocaleTranslation('ja', key)
 })

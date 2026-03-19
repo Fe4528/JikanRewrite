@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const node_os = require('node-os-utils');
-const { getLocaleTranslation, code_block } = require('../../utils');
+const { getLocaleTranslation, code_block } = require('../../static/utils.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('about')
+    .setName('about_dev_version')
     .setDescription('about Jikan')
     .setDescriptionLocalizations({
         "ja": getLocaleTranslation("ja", "commands.public.about.description")

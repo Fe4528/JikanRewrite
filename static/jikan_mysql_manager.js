@@ -175,12 +175,13 @@ class JikanMySQLDatabase {
     static getLeaderboardScope(type, guild_id) {
         telemetry.log("get_leaderboard_scope", "_calls");
 
-        switch (type) {
+        switch (type.toUpperCase()) {
             case "GLOBAL":
                 return "JikanGlobalLeaderboard";
             case "LOCAL":
                 return `JikanGuildLeaderboard_${guild_id}`;
-            case "TEMP":
+            case "REALTIME":
+            case "REALTIME":
                 return `JikanGuildLeaderboardTemp_${guild_id}`;
             default:
                 telemetry.log("get_leaderboard_scope", "_errors");

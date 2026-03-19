@@ -72,7 +72,9 @@
 					}
 				},
 				"embeds": {
-					"sort_footer": "Sorting by {0} in {1} order"
+					"sort_footer": "Sorting by {0} in {1} order",
+					"no_users": "There are no users in this leaderboard",
+					"no_users_reason": "Join a VC channel to be in this leaderboard!\nYou will appear here after you leave the VC."
 				}
 			}
 		}
@@ -92,7 +94,8 @@
 
 		"realtime": "Realtime",
 		"global": "Global",
-		"local": "Local"
+		"local": "Local",
+		"error":  "Error"
 	},
 	"leaderboard_titles": {
 		"_comment": "realtime and local need a {0} for the server name, will not use this if they set a custom title",
