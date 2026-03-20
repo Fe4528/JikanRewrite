@@ -22,6 +22,7 @@ const command_files = fs.readdirSync('./commands/public/').filter(file => file.e
 const dev_command_files = fs.readdirSync('./commands/dev/').filter(file => file.endsWith('.js'));
 
 const button_events = require('./events/button.js');
+// just need the cache
 
 for (let file of dev_command_files) {
     const command = require(`./commands/dev/${file}`)
