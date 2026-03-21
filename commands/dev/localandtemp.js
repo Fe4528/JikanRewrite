@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js')
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('localandtemp')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('local and temp test result'),
     async run(discord, client, interaction) {
         let r = await client.database.getTempTimeAndLocal(interaction.user.id, interaction.guild.id);

@@ -1,11 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { code_block } = require('../../static/utils.js');
 const telemetry = require('../../static/telemetry.js');
-
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('telemetry')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('Telemetry for Jikan MySQL Manager'),
     async run(discord, client, interaction) {
         const tele_result = await telemetry.getTelemetryResult();

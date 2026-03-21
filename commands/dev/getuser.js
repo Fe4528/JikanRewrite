@@ -1,9 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { JikanDBError, code_block, ms_convert, getLocaleTranslation } = require('../../static/utils.js');
+const { JikanDBError, code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils.js');
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('getuser')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.getuser.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.dev.getuser.description'))
     .addStringOption(i => i

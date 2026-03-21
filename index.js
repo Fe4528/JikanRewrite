@@ -79,6 +79,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton()) {
         try {
+            let button = require.cache[path.resolve(__dirname, 'events', 'button.js')];
             button.exports.run(discord, client, interaction);
         } catch (e) {
             if (e instanceof JikanDBError) {

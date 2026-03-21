@@ -1,10 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { ms_convert, getLocaleTranslation } = require('../../static/utils');
-
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('getalltime')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.mystats.description')),
     async run(discord, client, interaction) {
         const time = await client.database.getAllUserTime(interaction.user.id, interaction.guild.id);

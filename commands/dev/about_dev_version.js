@@ -1,10 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const node_os = require('node-os-utils');
-const { getLocaleTranslation, code_block } = require('../../static/utils.js');
+const { getLocaleTranslation, code_block, localizationTemplate } = require('../../static/utils.js');
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('about_dev_version')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('about Jikan')
     .setDescriptionLocalizations(localizationTemplate('commands.public.about.description')),
     async run(discord, client, interaction) {

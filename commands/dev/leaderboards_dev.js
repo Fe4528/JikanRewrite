@@ -1,10 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js')
 const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils');
 const { lodash_chunk: chunk } = require('lodash');
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('leaderboards_dev')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('test leaderboards')
     .addStringOption(option => 
         option

@@ -1,9 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { code_block } = require('../../static/utils.js');
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('gettables')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('gettables'),
     async run(discord, client, interaction) {
         const tables = await client.database.getTableNames();

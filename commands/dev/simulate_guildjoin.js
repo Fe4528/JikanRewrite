@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js')
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('simulate_guildjoin')
+    .setName(path.basename(__filename).split('.')[0])
     .setDescription('command.description'),
     async run(discord, client, interaction) {
         await client.database.createServerData(interaction.guild.id);
