@@ -5,9 +5,7 @@ module.exports = {
     data: new SlashCommandBuilder()
     .setName('localetest')
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.localetest.description'))
-    .setDescriptionLocalizations({
-        "ja": getLocaleTranslation("ja", "commands.dev.localetest.description")
-    }),
+    .setDescriptionLocalizations(localizationTemplate('commands.dev.localetest.description')),
     async run(discord, client, interaction) {
         console.log(interaction.locale);
         interaction.reply({

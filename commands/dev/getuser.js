@@ -5,15 +5,11 @@ module.exports = {
     data: new SlashCommandBuilder()
     .setName('getuser')
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.getuser.description'))
-    .setDescriptionLocalizations({
-        "ja": getLocaleTranslation("ja", "commands.dev.getuser.description")
-    })
+    .setDescriptionLocalizations(localizationTemplate('commands.dev.getuser.description'))
     .addStringOption(i => i
         .setName('user_id')
         .setDescription(getLocaleTranslation('en-US', 'commands.dev.getuser.options.user_id.description'))
-        .setDescriptionLocalizations({
-            "ja": getLocaleTranslation("ja", "commands.dev.getuser.options.user_id.description")
-        })
+        .setDescriptionLocalizations(localizationTemplate('commands.dev.getuser.options.user_id.description'))
         .setRequired(true)
     ),
     async run(discord, client, interaction) {

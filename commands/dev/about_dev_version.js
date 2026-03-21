@@ -6,9 +6,7 @@ module.exports = {
     data: new SlashCommandBuilder()
     .setName('about_dev_version')
     .setDescription('about Jikan')
-    .setDescriptionLocalizations({
-        "ja": getLocaleTranslation("ja", "commands.public.about.description")
-    }),
+    .setDescriptionLocalizations(localizationTemplate('commands.public.about.description')),
     async run(discord, client, interaction) {
         let cpus = node_os.cpu;
         let os_name = await node_os.os.type();
