@@ -102,5 +102,6 @@
 		"realtime": "{0} | Realtime VC Leaderboard",
 		"global": "Global VC Leaderboard",
 		"local": "{0} | Local VC Leaderboard"
-	}
+	},
+	"banned_message": "The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)"
 }

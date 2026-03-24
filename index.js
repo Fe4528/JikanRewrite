@@ -4,7 +4,7 @@ loadEnvFile('.env');
 
 const { REST, Routes } = require('discord.js');
 const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
-const { JikanDBError, consoleColor } = require('./static/utils.js')
+const { JikanDBError, consoleColor, getLocaleTranslation } = require('./static/utils.js')
 const discord = require('discord.js')
 const jmysql = require('./static/jikan_mysql_manager.js');
 const voice_update_module = require('./events/voice_update.js');
@@ -50,7 +50,7 @@ client.on('interactionCreate', async interaction => {
     const is_dev = dev_commands_map.has(interaction.commandName);
 
     if (banlist_cache.has(interaction.user.id) || banlist_cache.has(interaction.guild.id)) {
-        await interaction.reply("The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)")
+        await interaction.reply(getLocaleTranslation(interaction.locale, 'banned_message'));
         return;
     }
 
