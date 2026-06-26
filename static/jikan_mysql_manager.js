@@ -40,6 +40,18 @@ class JikanMySQLDatabase {
         // not sure if i need to use await here...
         // but we're not waiting for any data so
         // it should be good
+        try { 
+            this.pool.execute('insert ignore into JikanGuildLeaderboardSettings (server_id) values (?)', [id])
+            // server settings
+
+            this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            // local leaderboard for server
+
+            this.pool.execute(`create table if not exists JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            // temp 
+        } catch(e) {}
+
+
         try {
             const [test_for_settings] = await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id]);
             //console.log(test_for_settings[0].server_id == undefined);
