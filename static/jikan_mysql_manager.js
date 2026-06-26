@@ -193,7 +193,6 @@ class JikanMySQLDatabase {
             case "LOCAL":
                 return `JikanGuildLeaderboard_${guild_id}`;
             case "REALTIME":
-            case "REALTIME":
                 return `JikanGuildLeaderboardTemp_${guild_id}`;
             default:
                 telemetry.log("get_leaderboard_scope", "_errors");
