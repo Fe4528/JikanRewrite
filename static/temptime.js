@@ -48,7 +48,18 @@ class TempTime {
             user_id: params.user_id,
             user_name: params.user_name,
             joined_at: params.joined_at
-        })
+        });
+    }
+
+    /**
+     * 
+     * @param {string} params.guild_id The guild ID
+     * @param {string} params.user_id The user ID to delete
+     */
+    static removeUserInServerTemp(params) {
+        const server = this.getServer(params.guild_id);
+
+        server.delete(params.user_id);
     }
 }
 
