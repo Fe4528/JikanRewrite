@@ -4,5 +4,5 @@
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 
 # Info
-This project will receive very little features because i dont see programming rewarding as it used to be.<br/> 
+This project will receive features only if I felt like it because I dont see programming rewarding as it used to be.<br/> 
 Bot operation will not stop until no server uses it anymore.
