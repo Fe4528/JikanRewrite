@@ -1,6 +1,7 @@
 const { ms_convert } = require("./utils");
 
 const helper_methods = /** @type {const} */([
+    "add_user",
     "check_guild_db_availability",
     "check_if_db_table_exists",
     "create_server_data",

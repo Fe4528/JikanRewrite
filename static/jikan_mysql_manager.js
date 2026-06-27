@@ -12,7 +12,7 @@ class JikanMySQLDatabase {
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DBNAME,
-            port: 3307,
+            port: process.env.MYSQL_PORT,
             waitForConnections: true,
             connectionLimit: 4,
             queueLimit: 0
@@ -24,6 +24,28 @@ class JikanMySQLDatabase {
                 "green"
             )
         );
+    }
+
+    /**
+     * Add user in global index (not GlobalLeaderboards)
+     * @param {object} params
+     * @param {string} params.user_id
+     * @param {string} params.user_name
+     */
+    static async addUser(params) {
+        try {
+            this.pool.execute('insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)', [
+                params.user_id,
+                params.user_name,
+                0
+            ]);
+
+            telemetry.log("add_user", "_calls");
+        } catch (e) {
+            telemetry.log("add_user", "_errors");
+
+            throw new JikanDBError(e.message);
+        }
     }
 
     /**
@@ -40,55 +62,18 @@ class JikanMySQLDatabase {
         // not sure if i need to use await here...
         // but we're not waiting for any data so
         // it should be good
-        try {
-            const [test_for_settings] = await connection.query('select server_id from JikanGuildLeaderboardSettings where server_id = ?', [id]);
-            //console.log(test_for_settings[0].server_id == undefined);
+        try { 
+            this.pool.execute('insert ignore into JikanGuildLeaderboardSettings (server_id) values (?)', [id])
+            // server settings
 
-            if (!test_for_settings[0]) {
-                // no leaderboard settings
+            this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
+            // local leaderboard for server
 
-                console.log(consoleColor(`No JikanGuildLeaderboardSettings for ${id}, creating...`, "yellow"));
-
-                await this.pool.execute('insert into JikanGuildLeaderboardSettings (server_id) values (?)', [id]);
-
-                console.log(consoleColor(`Guild ${id} JikanGuildLeaderboardSettings entry has been created., `, "green"));
-            }
-            else {
-                console.log(consoleColor(`JikanGuildLeaderboardSettings for ${id} already exists, continue`, "green"));
-            }
-
-            if (!await this.checkIfDBTableExists(`JikanGuildLeaderboard_${id}`)) {
-                console.log(consoleColor(`Creating JikanGuildLeaderboard_${id} because it does not exist`, "yellow"));
-
-                await this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-            }
-            else {
-                console.log(consoleColor(`JikanGuildLeaderboard_${id} already exists, continue`, "green"));
-            }
-
-            if (!await this.checkIfDBTableExists(`JikanGuildLeaderboardTemp_${id}`)) {
-                // JikanGuildLeaderboardTemp_ will be removed anyways if you kick the bot
-                // to prevent time exploits
-
-                console.log(consoleColor(`Creating JikanGuildLeaderboardTemp_${id} because it does not exist`, "yellow"));
-
-                await this.pool.execute(`create table if not exists JikanGuildLeaderboardTemp_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-            }
-            else {
-                console.log(consoleColor(`JikanGuildLeaderboardTemp_${id} exists, continue`, "yellow"));
-            }
-
-            telemetry.log("create_server_data", "_calls");
             console.log(consoleColor(`Finished initializing server data for ${id}`, "green"));
         } catch (e) {
             telemetry.log("create_server_data", "_errors");
 
             throw new JikanDBError(e.message);
-        }
-        finally {
-            if (connection) {
-                connection.release();
-            }
         }
     }
 
@@ -180,7 +165,6 @@ class JikanMySQLDatabase {
                 return "JikanGlobalLeaderboard";
             case "LOCAL":
                 return `JikanGuildLeaderboard_${guild_id}`;
-            case "REALTIME":
             case "REALTIME":
                 return `JikanGuildLeaderboardTemp_${guild_id}`;
             default:

@@ -74,7 +74,7 @@
 				"embeds": {
 					"sort_footer": "Sorting by {0} in {1} order",
 					"no_users": "There are no users in this leaderboard",
-					"no_users_reason": "Join a VC channel to be in this leaderboard!\nYou will appear here after you leave the VC."
+					"no_users_reason": "Join a VC channel to be in this leaderboard!\n\nYou will appear here after you leave the VC.\n-# (Ignore this If Realtime Leaderboard is selected, you will appear here immediately)"
 				}
 			}
 		}
