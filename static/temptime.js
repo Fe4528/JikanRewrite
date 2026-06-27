@@ -20,7 +20,7 @@ class TempTime {
      * Get the temp time Map of a server. If not found,
      * it will create a server entry.
      * @param {string} server_id 
-     * @returns {Map<string, object>} The server Map
+     * @returns {Map<server_id, object>} The server Map
      */
     static getServer(server_id) {
         let server = this.servers.get(server_id);
@@ -33,10 +33,11 @@ class TempTime {
     }
     /**
      * Add a user in server temp
+     * @param {object} params 
      * @param {string} params.guild_id The guild ID
      * @param {string} params.user_id The user ID
      * @param {string} params.user_name The user ID 
-     * @param {number} params.joined_at Value of Date.now() 
+     * @param {number} params.vc_time Value of Date.now() 
      */
     static addUserInServerTemp(params) {
         const server = this.getServer(params.guild_id)
@@ -48,12 +49,13 @@ class TempTime {
         server.set(params.user_id, {
             user_id: params.user_id,
             user_name: params.user_name,
-            joined_at: params.joined_at
+            vc_time: params.vc_time
         });
     }
 
     /**
-     * 
+     * Remove user in server temp Map
+     * @param {object} params 
      * @param {string} params.guild_id The guild ID
      * @param {string} params.user_id The user ID to delete
      */
@@ -62,8 +64,40 @@ class TempTime {
 
         user.delete(params.user_id);
     }
+
+    /**
+     * Get sorted users from a server by their join time (oldest to newest)
+     * @param {string} guild_id The guild ID
+     * @param {object} param
+     * @param {'vc_time' | 'user_id' | 'user_name'} param.value Value to sort
+     * @param {'desc' | 'asc'} param.order Order of sorting
+     * @returns {Array<object>} Sorted array of user objects
+     */
+    static getSortedUsers(guild_id, param) {
+        const server = this.getServer(guild_id);
+        
+        const users_array = Array.from(server.values());
+
+        const sorters = {
+            vc_time: {
+                asc:  (a, b) => a.vc_time - b.vc_time,
+                desc: (a, b) => b.vc_time - a.vc_time
+            },
+            user_id: {
+                asc:  (a, b) => a.user_id.localeCompare(b.user_id),
+                desc: (a, b) => b.user_id.localeCompare(a.user_id)
+            },
+            user_name: {
+                asc:  (a, b) => a.user_name.localeCompare(b.user_name),
+                desc: (a, b) => b.user_name.localeCompare(a.user_name)
+            }
+        };
+
+        return users_array.sort(sorters[param.value]?.[param.order]);
+    }
 }
 
+module.exports = TempTime;
 /*
 servers: {
     server_1: {

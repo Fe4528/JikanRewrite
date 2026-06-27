@@ -84,32 +84,27 @@ module.exports.code_block = (txt) => {
  * @returns 
  */
 module.exports.ms_convert = (ms) => {
-    const seconds = ms / 1000;
+    const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
     const years = Math.floor(days / 365);
 
-    const remainingDays = days % 365;
-    const remainingHours = hours % 24;
-    const remainingMinutes = minutes % 60;
-    const remainingSeconds = (seconds % 60).toFixed(3);
+    const remaining_days = days % 365;
+    const remaining_hours = hours % 24;
+    const remaining_minutes = minutes % 60;
+    
+    const remaining_seconds = ((ms % 60000) / 1000).toFixed(3);
+    const final_seconds = parseFloat(remaining_seconds); 
 
     const duration = [];
-    if (years > 0) {
-        duration.push(`${years}y`)
-    }
-    if (remainingDays > 0) {
-        duration.push(`${remainingDays}d`)
-    }
-    if (remainingHours > 0) {
-     duration.push(`${remainingHours}h`)
-    }
-    if (remainingMinutes > 0) {
-        duration.push(`${remainingMinutes}m`)
-    }
-    if (remainingSeconds >= 0) {
-        duration.push(`${remainingSeconds}s`)
+    if (years > 0) duration.push(`${years}y`);
+    if (remaining_days > 0) duration.push(`${remaining_days}d`);
+    if (remaining_hours > 0) duration.push(`${remaining_hours}h`);
+    if (remaining_minutes > 0) duration.push(`${remaining_minutes}m`);
+    
+    if (final_seconds > 0 || duration.length === 0) {
+        duration.push(`${final_seconds}s`);
     }
 
     return duration.join(' ');

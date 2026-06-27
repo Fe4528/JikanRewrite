@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js')
-const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils');
+const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils.js');
 const { lodash_chunk: chunk } = require('lodash');
 const path = require('path');
+const TempTime = require("../../static/temptime.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -76,13 +77,25 @@ module.exports = {
         const selected_scope = interaction.options.getString('scope') || 'global';
         const selected_value = interaction.options.getString('value') || 'vc_time';
         const selected_order = interaction.options.getString('order') || 'desc';
+        const guild = interaction.guild;
         
-        let lb = await client.database.getLeaderboardFrom(
-            selected_scope, 
-            interaction.guild.id, 
-            selected_value,
-            selected_order
-        );
+        let lb;
+        
+        if (selected_scope !== "realtime") {
+            lb = await client.database.getLeaderboardFrom(
+                selected_scope, 
+                guild.id, 
+                selected_value,
+                selected_order
+            );
+        } else {
+            // since temp tata is stored in RAM (the TempTime bullshit)
+            lb = TempTime.getSortedUsers(guild.id, {
+                value: selected_value,
+                order: selected_order
+            });
+        }
+        
 
         //lb = lb.slice(0, 1)
 
@@ -120,7 +133,7 @@ module.exports = {
                 getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
                 getLocaleTranslation(interaction.locale, `common.${selected_value}`),
                 getLocaleTranslation(interaction.locale, `common.${selected_order}`))}`)
-            .setColor('#0099ff');
+            .setColor('#ffffff');
         interaction.reply({ embeds: [embed] });
     }
 }

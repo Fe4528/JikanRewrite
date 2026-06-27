@@ -1,5 +1,5 @@
-const { JikanDBError, ms_convert, consoleColor } = require("../static/utils")
-
+const { JikanDBError, ms_convert, consoleColor } = require("../static/utils.js")
+const TempTime = require("../static/temptime.js")
 //client has the database object
 
 module.exports.changeDetected = async (os, ns, client) => {
@@ -18,29 +18,42 @@ module.exports.changeDetected = async (os, ns, client) => {
     }
 
     try {
+        const server_temp = TempTime.getServer(guild.id);
         if (ns.channel && !os.channel) {
             const date = Date;
 
-            const temp_time = await jdb.getUserTimeFrom(member.id, guild.id, "REALTIME");
+            const user_temp_time = server_temp.get(member.id);
 
             //console.log(temp_time);
-            if (!temp_time?.vc_time) {
+            if (!user_temp_time) {
                 // no data | not joined in vc
                 //
                 // || local_time.temp_time == 0 || local_time.length < 1
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: date.now(), user_name: member.user.username, mode: "SET" })
+                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: date.now(), user_name: member.user.username, mode: "SET" })
+                TempTime.addUserInServerTemp({
+                    guild_id: guild.id,
+                    user_id: member.id,
+                    user_name: member.user.username,
+                    vc_time: date.now()
+                });
+
                 console.log(`User %s SET time`, member.id);
-            }
-            else if (temp_time.vc_time) {
+            } else if (user_temp_time) {
                 // this block runs when user joined the channel and it detects that the user already has temp data
                 //
                 // happens when jikan is down while user left vc, so the user is still recorded in JikanGuildLeaderboardTemp_
                 // and user joined vc after Jikan application is initialized and ready to record time
-
+                
                 console.log(consoleColor(`User ${member.id} already has record in JikanGuildLeaderboardTemp_${guild.id}, removing entry`, "red"));
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
-                console.log(consoleColor(`User ${member.id} entry deletion JikanGuildLeaderboardTemp_${guild.id} DONE`, "red"));
+                
+                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
+                TempTime.removeUserInServerTemp({
+                    guild_id: guild.id,
+                    user_id: member.id
+                });
+                
+                console.log(consoleColor(`User ${member.id} entry deletion JikanTempTime<${guild.id}, object {}> Map DONE`, "red"));
 
                 return;
             }
@@ -58,16 +71,21 @@ module.exports.changeDetected = async (os, ns, client) => {
         }   
         else if (!ns.channel && os.channel) {
             // left vc
+            const date = Date;
+            const date_now = date.now();
+
             if (!await jdb.userExists(member.id)) {
-                console.log(consoleColor(`User ${member.id} is not yet saved in global record (in JikanUser)`, "yellow"));
-                return;
+                console.log(consoleColor(`User ${member.id} is not yet saved in global index record (in JikanUser, not global lb); creating...`, "yellow"));
+                await jdb.addUser({
+                    user_id: member.id,
+                    user_name: member.user.username
+                });
             }
 
-            const date = Date;
-            const date_now = date.now()
-            const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "REALTIME");
+            //const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "REALTIME");
+            const old_time = server_temp.get(member.id);
 
-            if (!old_time?.vc_time) {
+            if (!old_time) {
                 // if vc_time is undefined for some reason
 
                 // means temp time does not exist
@@ -75,7 +93,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 // but since we already deleted the entry earlier, temp_time in old_time variable is undefined
 
                 console.log(consoleColor(`User ${member.id} temp time does not exist, do nothing`, "red"));
-                return
+                return;
             }
 
             const time_spent_after_leaving = date_now - old_time.vc_time;
@@ -88,9 +106,13 @@ module.exports.changeDetected = async (os, ns, client) => {
 
                 console.log(consoleColor(`User ${member.id} time spent in VC is same as today`, "red"));
 
-                await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
+                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
+                TempTime.removeUserInServerTemp({
+                    guild_id: guild.id,
+                    user_id: member.id
+                });
 
-                console.log(consoleColor(`User ${member.id} temp time record has been deleted in JikanGuildLeaderboardTemp_${guild.id}`, "green"));
+                console.log(consoleColor(`User ${member.id} temp time record has been deleted in JikanTempTime<${guild.id}, object {}>`, "green"));
 
                 return;
             }
@@ -108,7 +130,12 @@ module.exports.changeDetected = async (os, ns, client) => {
             //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: 0, user_name: member.user.username, mode: "SET" });
             // old
 
-            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
+            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
+            TempTime.removeUserInServerTemp({
+                guild_id: guild.id,
+                user_id: member.id
+            });
+
             console.log("User %s TEMP time has been deleted", member.id);
 
             console.log("User %s left Channel %s", member.id, os.channel.id)

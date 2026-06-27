@@ -1,7 +1,6 @@
 create table JikanUser (
     user_id varchar(30) primary key not null,
     user_name varchar(50) not null,
-    vc_time bigint not null,
     is_hidden bool default 0
 );
 
@@ -10,7 +9,7 @@ create table Jikan (
 );
 
 create table JikanBannedIDs(
-	guild_id varchar(30) primary key not null
+	id varchar(30) primary key not null
 );
 
 create table JikanGuildLeaderboardSettings (
@@ -19,18 +18,6 @@ create table JikanGuildLeaderboardSettings (
 	log_channel varchar(30), 
 	webhook_url text,
 	ignored_role varchar(30)
-);
-
-create table JikanGuildLeaderboard_1122615524942155841 (
-	user_id varchar(30) primary key not null,
-    user_name varchar(50) not null,
-    vc_time bigint not null
-);
-
-create table JikanGuildLeaderboardTemp_1122615524942155841 (
-	user_id varchar(30) primary key not null,
-    user_name varchar(50) not null,
-    join_time bigint not null
 );
 
 create table JikanGlobalLeaderboard (
