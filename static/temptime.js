@@ -17,7 +17,8 @@ class TempTime {
     }
 
     /**
-     * Get the temp time Map of a server
+     * Get the temp time Map of a server. If not found,
+     * it will create a server entry.
      * @param {string} server_id 
      * @returns {Map<string, object>} The server Map
      */
@@ -57,9 +58,9 @@ class TempTime {
      * @param {string} params.user_id The user ID to delete
      */
     static removeUserInServerTemp(params) {
-        const server = this.getServer(params.guild_id);
+        const user = this.getServer(params.guild_id);
 
-        server.delete(params.user_id);
+        user.delete(params.user_id);
     }
 }
 
