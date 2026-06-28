@@ -42,10 +42,10 @@ module.exports.changeDetected = async (os, ns, client) => {
             } else if (user_temp_time) {
                 // this block runs when user joined the channel and it detects that the user already has temp data
                 //
-                // happens when jikan is down while user left vc, so the user is still recorded in JikanGuildLeaderboardTemp_
+                // happens when jikan is down while user left vc, so the user is still recorded in JikanTempTime<> Map
                 // and user joined vc after Jikan application is initialized and ready to record time
                 
-                console.log(consoleColor(`User ${member.id} already has record in JikanGuildLeaderboardTemp_${guild.id}, removing entry`, "red"));
+                console.log(consoleColor(`User ${member.id} already has record in JikanTempTime<${guild.id}, object {}>, removing entry`, "red"));
                 
                 //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
                 TempTime.removeUserInServerTemp({
@@ -101,7 +101,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             console.log(time_spent_after_leaving, date_now);
             if (time_spent_after_leaving == date_now) {
                 // means temp time is 0 and time spent is the same as the leave timestamp
-                // in other words, the user left vc without a record in JikanGuildLeaderboardTemp_
+                // in other words, the user left vc without a record in JikanTempTime<> Map
                 // happens when user left vc while Jikan application is down or still initializing
 
                 console.log(consoleColor(`User ${member.id} time spent in VC is same as today`, "red"));
