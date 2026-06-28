@@ -3,13 +3,13 @@
 	"commands": {
 		"dev": {
 			"devtest": {
-				"description": "developer testing command"
+				"description": "[DEV] developer testing command"
 			},
 			"getalltime": {
-				"description": "get a user's all time"
+				"description": "[DEV} get a user's all time"
 			},
 			"getuser": {
-				"description": "get user by id",
+				"description": "[DEV] get user by id",
 				"options": {
 					"user_id": {
 						"description": "id of the user to get"
@@ -22,6 +22,9 @@
 					"description": "en-US description",
 					"missing": "Missing/not translated section"
 				}
+			},
+			"telemetry": {
+				"description": "[DEV] Send an updatable telemetry view"
 			}
 		},
 		"public": {

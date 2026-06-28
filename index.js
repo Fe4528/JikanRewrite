@@ -1,5 +1,4 @@
 const { loadEnvFile } = require('node:process');
-const fs = require('fs')
 loadEnvFile('.env');
 
 const { REST, Routes } = require('discord.js');
@@ -10,6 +9,8 @@ const jmysql = require('./static/jikan_mysql_manager.js');
 const voice_update_module = require('./events/voice_update.js');
 const path = require('path');
 const refresh_modules = require('./refresh_modules.js');
+const TempTime = require("./static/temptime.js");
+const fs = require('fs')
 
 const commands_map = new Map();
 const dev_commands_map = new Map();
@@ -132,6 +133,10 @@ client.on('voiceStateUpdate', async (os, ns) => {
 
 client.on('guildCreate', async guild => {
     client.database.createServerData(guild.id)
+})
+
+client.on('guildDelete', async guild => {
+    TempTime.removeServer(guild.id);
 })
 
 client.login(process.env.BOT_TOKEN).then(async () => {

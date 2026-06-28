@@ -17,21 +17,6 @@ class TempTime {
     }
 
     /**
-     * Get the temp time Map of a server. If not found,
-     * it will create a server entry.
-     * @param {string} server_id 
-     * @returns {Map<server_id, object>} The server Map
-     */
-    static getServer(server_id) {
-        let server = this.servers.get(server_id);
-
-        if (!server) {
-            server = this.addServer(server_id);
-        }
-
-        return server;
-    }
-    /**
      * Add a user in server temp
      * @param {object} params 
      * @param {string} params.guild_id The guild ID
@@ -54,15 +39,19 @@ class TempTime {
     }
 
     /**
-     * Remove user in server temp Map
-     * @param {object} params 
-     * @param {string} params.guild_id The guild ID
-     * @param {string} params.user_id The user ID to delete
+     * Get the temp time Map of a server. If not found,
+     * it will create a server entry.
+     * @param {string} server_id 
+     * @returns {Map<server_id, object>} The server Map
      */
-    static removeUserInServerTemp(params) {
-        const user = this.getServer(params.guild_id);
+    static getServer(server_id) {
+        let server = this.servers.get(server_id);
 
-        user.delete(params.user_id);
+        if (!server) {
+            server = this.addServer(server_id);
+        }
+
+        return server;
     }
 
     /**
@@ -94,6 +83,26 @@ class TempTime {
         };
 
         return users_array.sort(sorters[param.value]?.[param.order]);
+    }
+
+    /**
+     * Remove user in server temp Map
+     * @param {object} params 
+     * @param {string} params.guild_id The guild ID
+     * @param {string} params.user_id The user ID to delete
+     */
+    static removeUserInServerTemp(params) {
+        const user = this.getServer(params.guild_id);
+
+        user.delete(params.user_id);
+    }
+
+    /**
+     * Removes a server in the servers Map
+     * @param {string} guild_id The guild ID
+     */
+    static removeServer(guild_id) {
+        this.servers.delete(guild_id);
     }
 }
 
