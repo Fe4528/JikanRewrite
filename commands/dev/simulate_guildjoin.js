@@ -19,6 +19,6 @@ module.exports = {
         
         await client.database.createServerData(selected_id);
 
-        interaction.reply("Simulated guild join event for database. Note that it also resets if any tables are present");
+        interaction.reply(`Simulated guild join event for database creation.\nGuildID: ${selected_id}`);
     }
 }
