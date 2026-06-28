@@ -9,6 +9,7 @@ module.exports = {
         option
         .setName('server_id')
 		.setDescription("Simulate guildCreate for a server")
+        .setRequired(true)
     ),
     async run(discord, client, interaction) {
         let selected_id = interaction.options.getString("server_id");
