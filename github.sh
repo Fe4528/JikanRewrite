@@ -11,10 +11,11 @@ if [ ! -d ".git" ]; then
     git init
     git remote add origin https://github.com/${GITHUB_USER}/${REPO_NAME}.git
     git fetch origin "$BRANCH"
-    git checkout -b "$BRANCH" --track origin/"$BRANCH"
+    git checkout -f -b "$BRANCH" --track origin/"$BRANCH"
 else
-    echo "Git repo detected - pulling latest changes..."
-    git pull origin "$BRANCH"
+    echo "Git repo detected; forcing update to match GitHub..."
+    git fetch origin "$BRANCH"
+    git reset --hard origin/"$BRANCH"
 fi
 
 echo "Starting index.js..."
