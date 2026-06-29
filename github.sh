@@ -13,10 +13,20 @@ if [ ! -d ".git" ]; then
     git fetch origin "$BRANCH"
     git checkout -f -b "$BRANCH" --track origin/"$BRANCH"
 else
-    echo "Git repo detected; forcing update to match GitHub..."
-    git fetch origin "$BRANCH"
-    git reset --hard origin/"$BRANCH"
+    echo "Git repo detected; checking for updates..."
+
+    PULL_OUTPUT=$(git pull origin "$BRANCH")
+    echo "$PULL_OUTPUT"
+
+    if [[ "$PULL_OUTPUT" == *"Already up to date."* ]]; then
+        echo "No new files found; already running latest code."
+    else
+        echo "New files detected and pulled"
+    fi
 fi
 
-echo "Starting index.js..."
+echo "Wait 10 sec..."
+sleep 10
+
+echo "Start program index.js..."
 node index.js

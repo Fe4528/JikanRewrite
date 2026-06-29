@@ -71,6 +71,24 @@ module.exports.dev_log = (payload) => {
 }
 
 /**
+ * Chunk an array into small sizes as give in the size param
+ * @param {Array} array 
+ * @param {number} size 
+ * @returns {Array} Array with chunked arrays inside
+ */
+module.exports.chunk = (array, size) => {
+    const chunked = [];
+    let index = 0;
+    
+    while (index < array.length) {
+        chunked.push(array.slice(index, index + size));
+        index += size;
+    }
+    
+    return chunked;
+};
+
+/**
  * Format text as code block
  * @param {string} txt String to format
  */
@@ -141,7 +159,7 @@ module.exports.localizationTemplate = (key) => ({
  * Generates an ANSI escape code for the given string
  * @param {string} string String to concatenate
  * @param {string} color color or style of string
- * @returns ansi escape code with string concatenated
+ * @returns ANSI escape code with string concatenated
  */
 module.exports.consoleColor = (string, color = 'white') => {
     return `${console_colors[color]}${string}${console_colors.default}`;
