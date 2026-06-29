@@ -12,7 +12,7 @@ create table JikanBannedIDs(
 	id varchar(30) primary key not null
 );
 
-create table JikanGuildLeaderboardSettings (
+create table JikanGuildSettings (
     server_id varchar(30) primary key not null,
     leaderboard_name varchar(40),
 	log_channel varchar(30), 

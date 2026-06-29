@@ -63,7 +63,7 @@ class JikanMySQLDatabase {
         // but we're not waiting for any data so
         // it should be good
         try { 
-            this.pool.execute('insert ignore into JikanGuildLeaderboardSettings (server_id) values (?)', [id])
+            this.pool.execute('insert ignore into JikanGuildSettings (server_id) values (?)', [id])
             // server settings
 
             this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
