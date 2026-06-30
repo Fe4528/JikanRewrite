@@ -5,7 +5,6 @@ const telemetry = require("./telemetry.js");
 class JikanMySQLDatabase {
     static {
         console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
-        const start = Date.now();
 
         this.pool = mysql.createPool({
             host: process.env.MYSQL_ENDPOINT,
@@ -17,13 +16,6 @@ class JikanMySQLDatabase {
             connectionLimit: 4,
             queueLimit: 0
         });
-
-        console.log(
-            consoleColor(
-                `MySQL pool ready! Took ${ms_convert(Date.now() - start)}`,
-                "green"
-            )
-        );
     }
 
     /**
