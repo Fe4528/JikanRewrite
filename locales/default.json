@@ -78,7 +78,8 @@
 					"sort_footer": "Sorting by {0} in {1} order",
 					"no_users": "There are no users in this leaderboard",
 					"no_users_reason": "Join a VC channel to be in this leaderboard!\n\nYou will appear here after you leave the VC.\n-# (Ignore this If Realtime Leaderboard is selected, you will appear here immediately)"
-				}
+				},
+				"myrank_not_found": "Not found (No data)"
 			}
 		}
 	},
@@ -106,5 +107,8 @@
 		"global": "Global VC Leaderboard",
 		"local": "{0} | Local VC Leaderboard"
 	},
-	"banned_message": "The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)"
+	"system": {
+		"command_error": "An error has occured. Re-run the command again.",
+		"banned_message": "The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)"
+	}
 }

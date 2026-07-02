@@ -59,7 +59,7 @@ client.on('interactionCreate', async interaction => {
     const is_dev = dev_commands_map.has(interaction.commandName);
 
     if (banlist_cache.has(interaction.user.id) || banlist_cache.has(interaction.guild.id)) {
-        await interaction.reply(getLocaleTranslation(interaction.locale, 'banned_message'));
+        await interaction.reply(getLocaleTranslation(interaction.locale, 'system.banned_message'));
         return;
     }
 
@@ -78,11 +78,7 @@ client.on('interactionCreate', async interaction => {
         try {
             command.exports.run(discord, client, interaction);
         } catch (e) {
-            if (e instanceof JikanDBError) {
-                interaction.reply("Fatal error ID 10001");
-            } else {
-                throw new Error(e.message);
-            }
+            interaction.reply(getLocaleTranslation(interaction.locale, 'system.command_error'))
         }
     }
 

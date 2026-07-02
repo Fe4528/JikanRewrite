@@ -138,7 +138,7 @@ module.exports.ms_convert = (ms) => {
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "Reserved Sring";
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "Reserved String";
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;

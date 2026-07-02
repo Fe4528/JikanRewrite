@@ -1,8 +1,10 @@
-const { SlashCommandBuilder } = require('discord.js')
-const { code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils.js');
-const { lodash_chunk: chunk } = require('lodash');
+const { code_block, ms_convert, getLocaleTranslation, localizationTemplate, chunk } = require('../../static/utils.js');
+const TempTime = require("../../static/temptime.js");
+
+const { SlashCommandBuilder } = require('discord.js');
+const { Pagination } = require("pagination.djs");
 const path = require('path');
-const TempTime = require("../../static/temptime.js")
+
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -73,14 +75,17 @@ module.exports = {
             }
         )
     ),
-    async run(discord, client, interaction) {
+async run(discord, client, interaction) {
         const selected_scope = interaction.options.getString('scope') || 'global';
         const selected_value = interaction.options.getString('value') || 'vc_time';
         const selected_order = interaction.options.getString('order') || 'desc';
         const guild = interaction.guild;
+        const time_took = Date.now();
         
         let lb;
-        
+
+        await interaction.deferReply();
+
         if (selected_scope !== "realtime") {
             lb = await client.database.getLeaderboardFrom(
                 selected_scope, 
@@ -89,7 +94,7 @@ module.exports = {
                 selected_order
             );
         } else {
-            // since temp tata is stored in RAM (the TempTime bullshit)
+            // since temp data is stored in RAM (the TempTime bullshit)
             lb = TempTime.getSortedUsers(guild.id, {
                 value: selected_value,
                 order: selected_order
@@ -106,34 +111,98 @@ module.exports = {
         //      {user_id: 'id', user_name: 'name', vc_time: time}, ...
         // ]
 
-        console.log(lb);
+        
 
-        let leaderboard_contents = "";
+        let leaderboard_contents = [];
+        let ranking = 0;
         let embed;
 
-        if (lb.length > 0) {
-            lb.forEach((user, index) => {
-                leaderboard_contents += `${index + 1}. ${user.user_name} ${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${selected_scope == "realtime" && user.vc_time != 0
+        // Optimized Map lookup cache index
+        const lb_map = new Map();
+
+        const pagination = new Pagination(interaction, {
+            firstEmoji: "⏮️",
+            prevEmoji: "◀️",
+            nextEmoji: "▶️",
+            lastEmoji: "⏭️",
+            buttonStyle: "Secondary",
+            idle: 60000,
+            limit: 1
+        })
+
+        if (lb && lb.length > 0) {
+            for (const user of lb) {
+                ranking++;
+
+                lb_map.set(user.user_id, { rank: ranking, data: user });
+
+                const displayTime = (selected_scope === "realtime" && user.vc_time !== 0)
                     ? ms_convert(Date.now() - user.vc_time)
-                    : ms_convert(user.vc_time)}\n`;
-                // if TEMP is selected, vc_time is actually the timestamp they joined, so we need to do Date.now() - vc_time
-                // to get their current time in VC.
-                //
-                // Now if the vc_time is 0, it means they are not in VC, so we just show 0.000s
-            });
+                    : ms_convert(user.vc_time);
+
+                leaderboard_contents.push(
+                    `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${displayTime}`
+                );
+            }
+        } else {
+            leaderboard_contents = 
+                `:warning: ${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users',
+                getLocaleTranslation(interaction.locale, `leaderboard_titles.${selected_scope}`))} :warning:\n\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason')}\n
+                ${
+                    getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
+                    getLocaleTranslation(interaction.locale, `common.${selected_value}`),
+                    getLocaleTranslation(interaction.locale, `common.${selected_order}`))
+                }
+                `;
         }
 
-        embed = new discord.EmbedBuilder()
+        const mydata = lb_map.get(interaction.user.id);
+        let myrank_value = getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.myrank_not_found');
+
+        if (mydata) {
+            const { rank, data } = mydata;
+            const mytime = (selected_scope === "realtime" && data.vc_time !== 0)
+                ? ms_convert(Date.now() - data.vc_time)
+                : ms_convert(data.vc_time);
+
+            myrank_value = `${rank}. ${interaction.user.username} - ${mytime}`;
+        }
+
+        let lb_entry_chunk;
+        if (typeof leaderboard_contents != 'string') {
+            const chunked = chunk(leaderboard_contents, 20).map(c => code_block(c.join("\n")) + `\n### Your rank:\n${code_block(myrank_value)}`);
+            lb_entry_chunk = selected_scope == "global" ? chunked.slice(0, 20) : chunked;
+        } else {
+            lb_entry_chunk = [leaderboard_contents];
+        }
+        
+        /*
+        global lb is limited to 400 users whereas local/realtime isnt
+
+        leaderboard_contents [
+            "1. fe4528 - 10s",
+            "2. namehere - timehere"
+        ]
+        */
+
+        /*
+        user [
+            { user data },
+            { user data 2},
+            ...
+        ]
+        */
+
+        pagination
             .setTitle(selected_scope == 'global' ? getLocaleTranslation(interaction.locale, 'leaderboard_titles.global') : selected_scope == 'local' ? `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.local', interaction.guild.name)}` : `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.realtime', interaction.guild.name)}`)
-            .setDescription(`${
-                lb.length > 0 ? code_block(leaderboard_contents) :
-                `:warning: ${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users',
-                    getLocaleTranslation(interaction.locale, `leaderboard_titles.${selected_scope}`))} :warning:\n\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason')}`}\n
-                ${
+            .setDescriptions(lb_entry_chunk)
+            .setColor('#ffffff')
+            .setFooter({ text: `{pageNumber}/{totalPages} | ${Date.now() - time_took}ms ${(lb ? lb.length : 0)} user(s) | ${
                 getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
                 getLocaleTranslation(interaction.locale, `common.${selected_value}`),
-                getLocaleTranslation(interaction.locale, `common.${selected_order}`))}`)
-            .setColor('#ffffff');
-        interaction.reply({ embeds: [embed] });
+                getLocaleTranslation(interaction.locale, `common.${selected_order}`))
+            }`});
+
+        pagination.render();
     }
 }
