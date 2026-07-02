@@ -1,15 +1,23 @@
 const { loadEnvFile } = require('node:process');
 loadEnvFile('.env');
 
+//
+process.env.NOVC = process.argv.includes("--novc") ? "true" : "false";
+//
+
 const { REST, Routes } = require('discord.js');
-const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
-const { JikanDBError, consoleColor, getLocaleTranslation } = require('./static/utils.js')
 const discord = require('discord.js')
+// i have no idea why i did this
+
+const rest = new REST({version: '10'}).setToken(process.env.BOT_TOKEN);
+
+const { JikanDBError, consoleColor, getLocaleTranslation } = require('./static/utils.js')
 const jmysql = require('./static/jikan_mysql_manager.js');
 const voice_update_module = require('./events/voice_update.js');
-const path = require('path');
 const refresh_modules = require('./refresh_modules.js');
 const TempTime = require("./static/temptime.js");
+
+const path = require('path');
 const fs = require('fs')
 
 const commands_map = new Map();
@@ -107,6 +115,7 @@ client.on('clientReady', async ls => {
 })
 
 client.on('voiceStateUpdate', async (os, ns) => {
+    if (process.env.NOVC == "true") return;
     if (!os && !ns) return;
     if (ns.member.user.bot) return;
 
@@ -139,6 +148,10 @@ client.on('guildDelete', async guild => {
     TempTime.removeServer(guild.id);
 })
 
+process.on('uncaughtException', (a) => {
+    console.log(a);
+}) 
+
 client.login(process.env.BOT_TOKEN).then(async () => {
     try {
         const fetched_banlist = await client.database.getBanList();
@@ -152,7 +165,3 @@ client.login(process.env.BOT_TOKEN).then(async () => {
         console.log("Online")
     }
 })
-
-process.on('uncaughtException', (a) => {
-    console.log(a);
-}) 

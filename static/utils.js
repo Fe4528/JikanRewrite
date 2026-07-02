@@ -130,7 +130,7 @@ module.exports.ms_convert = (ms) => {
 
 /**
  * Get the locale translation for a given key.
- * You can just put any gibberish like "sdjakhfjkshfkkjshdf" to make it return the default locale (en-US)
+ * If language is not found, defaults to en-US
  * @param {object} interaction 
  * @param {string} key
  * @param {'en-US' | 'ja'} locale
@@ -138,7 +138,7 @@ module.exports.ms_convert = (ms) => {
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? `${locale}.${key}`;
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "Reserved Sring";
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;
