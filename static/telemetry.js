@@ -2,8 +2,6 @@ const { ms_convert } = require("./utils");
 
 const helper_methods = /** @type {const} */([
     "add_user",
-    "check_guild_db_availability",
-    "check_if_db_table_exists",
     "create_server_data",
     "get_all_user_time",
     "get_ban_list",
@@ -11,10 +9,8 @@ const helper_methods = /** @type {const} */([
     "get_leaderboard_scope",
     "get_user",
     "get_user_time_from",
-    "get_table_names",
     "update_user_time",
     "user_exists",
-    "user_exists_in_leaderboard",
 ]);
 
 const types = /** @type {const} */ ([
@@ -42,6 +38,7 @@ class MySQLTelemetry {
      * @param {typeof types[number]} type - type of state to log
      */
     static log(prop, type) {
+        if (!prop) throw new Error("prop parameter is needed");
         if (!type) throw new Error("type parameter is needed");
 
         const key = prop + type;

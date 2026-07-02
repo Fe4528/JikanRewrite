@@ -61,6 +61,7 @@ class JikanMySQLDatabase {
             this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
             // local leaderboard for server
 
+            telemetry.log("create_server_data", "_calls");
             console.log(consoleColor(`Finished initializing server data for ${id}`, "green"));
         } catch (e) {
             telemetry.log("create_server_data", "_errors");
@@ -150,14 +151,15 @@ class JikanMySQLDatabase {
      * @param {string} guild_id
      */
     static getLeaderboardScope(type, guild_id) {
-        telemetry.log("get_leaderboard_scope", "_calls");
-
         switch (type.toUpperCase()) {
             case "GLOBAL":
+                telemetry.log("get_leaderboard_scope", "_calls");
                 return "JikanGlobalLeaderboard";
             case "LOCAL":
+                telemetry.log("get_leaderboard_scope", "_calls");
                 return `JikanGuildLeaderboard_${guild_id}`;
             case "REALTIME":
+                telemetry.log("get_leaderboard_scope", "_calls");
                 return `JikanGuildLeaderboardTemp_${guild_id}`;
             default:
                 telemetry.log("get_leaderboard_scope", "_errors");
