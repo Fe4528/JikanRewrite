@@ -51,13 +51,12 @@
 					}
 				}
 			},
-
 			"mystats": {
 				"description": "Check all your VC TIme",
 				"embed": {
 					"title": "{0}'s VC Time",
-					"global_field_name": "Global",
-					"realtime_field_name": "Realtime VC (in this server)",
+					"local_this_guild": "In this server",
+					"realtime_this_guild": "Realtime VC (in this server)",
 					"not_in_vc": "You need to join a VC first"
 				}
 			},

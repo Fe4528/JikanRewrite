@@ -81,16 +81,13 @@ class JikanMySQLDatabase {
                 `select 
                     userdb.user_id,
                     local.vc_time as local_time,
-                    global.vc_time as global_time,
-                    temp.vc_time as temp_time
+                    global.vc_time as global_time
                 from JikanUser
                     as userdb
                 left join JikanGlobalLeaderboard
                     as global on userdb.user_id = global.user_id
                 left join JikanGuildLeaderboard_${guild_id} 
                     as local on global.user_id = local.user_id
-                left join JikanGuildLeaderboardTemp_${guild_id} 
-                    as temp on global.user_id = temp.user_id
                 where userdb.user_id = (?)`, [user_id]
             );
 

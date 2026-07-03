@@ -6,11 +6,11 @@ const { Pagination } = require("pagination.djs");
 const path = require('path');
 
 function formatLeaderboardRow(user, ranking, selected_scope, selected_value) {
-    const displayTime = (selected_scope === "realtime" && user.vc_time !== 0)
+    const display_time = (selected_scope === "realtime" && user.vc_time !== 0)
         ? ms_convert(Date.now() - user.vc_time)
         : ms_convert(user.vc_time);
 
-    return `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${displayTime}`;
+    return `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${display_time}`;
 }
 
 function getMyRankingString(lb_map, interaction, selected_scope) {
