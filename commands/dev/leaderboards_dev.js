@@ -5,6 +5,27 @@ const { SlashCommandBuilder } = require('discord.js');
 const { Pagination } = require("pagination.djs");
 const path = require('path');
 
+function formatLeaderboardRow(user, ranking, selected_scope, selected_value) {
+    const displayTime = (selected_scope === "realtime" && user.vc_time !== 0)
+        ? ms_convert(Date.now() - user.vc_time)
+        : ms_convert(user.vc_time);
+
+    return `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${displayTime}`;
+}
+
+function getMyRankingString(lb_map, interaction, selected_scope) {
+    const mydata = lb_map.get(interaction.user.id);
+    if (!mydata) {
+        return getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.myrank_not_found');
+    }
+
+    const { rank, data } = mydata;
+    const mytime = (selected_scope === "realtime" && data.vc_time !== 0)
+        ? ms_convert(Date.now() - data.vc_time)
+        : ms_convert(data.vc_time);
+
+    return `${rank}. ${interaction.user.username} - ${mytime}`;
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -136,12 +157,8 @@ async run(discord, client, interaction) {
 
                 lb_map.set(user.user_id, { rank: ranking, data: user });
 
-                const displayTime = (selected_scope === "realtime" && user.vc_time !== 0)
-                    ? ms_convert(Date.now() - user.vc_time)
-                    : ms_convert(user.vc_time);
-
                 leaderboard_contents.push(
-                    `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${displayTime}`
+                    formatLeaderboardRow(user, ranking, selected_scope, selected_value)
                 );
             }
         } else {
@@ -156,17 +173,7 @@ async run(discord, client, interaction) {
                 `;
         }
 
-        const mydata = lb_map.get(interaction.user.id);
-        let myrank_value = getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.myrank_not_found');
-
-        if (mydata) {
-            const { rank, data } = mydata;
-            const mytime = (selected_scope === "realtime" && data.vc_time !== 0)
-                ? ms_convert(Date.now() - data.vc_time)
-                : ms_convert(data.vc_time);
-
-            myrank_value = `${rank}. ${interaction.user.username} - ${mytime}`;
-        }
+        const myrank_value = getMyRankingString(lb_map, interaction, selected_scope);
 
         let lb_entry_chunk;
         if (typeof leaderboard_contents != 'string') {
