@@ -1,4 +1,4 @@
 @echo off  
-REM Run bot in normal mode.
+REM Run bot in normal mode
 
 node .
