@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { JikanDBError, code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('../../static/utils.js');
+const { JikanDBError, code_block, ms_convert, getLocaleTranslation, localizationTemplate } = require('#jikan/utils.js');
+const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
 const path = require('path');
 
 module.exports = {
@@ -13,10 +14,10 @@ module.exports = {
         .setDescriptionLocalizations(localizationTemplate('commands.dev.getuser.options.user_id.description'))
         .setRequired(true)
     ),
-    async run(discord, client, interaction) {
-        const res = await client.database.getUser({
+    async run(client, interaction) {
+        const res = await JikanMySQLDatabase.getUser({
             id: interaction.options.getString("user_id").trim(),
-            guild_id: interaction.guild.id,
+            guild_id: interaction.guildId,
             type: "GLOBAL"
         });
             

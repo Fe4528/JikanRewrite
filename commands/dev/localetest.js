@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { getLocaleTranslation, localizationTemplate} = require('../../static/utils.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { getLocaleTranslation, localizationTemplate} = require('#jikan/utils.js');
 const path = require('path');
 
 module.exports = {
@@ -7,11 +7,11 @@ module.exports = {
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.localetest.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.dev.localetest.description')),
-    async run(discord, client, interaction) {
+    async run(client, interaction) {
         console.log(interaction.locale);
         interaction.reply({
             embeds: [
-                new discord.EmbedBuilder()
+                new EmbedBuilder()
                 .setTitle(getLocaleTranslation('en-US', 'commands.dev.localetest.embed.title'))
                 .setDescription(getLocaleTranslation('en-US', 'commands.dev.localetest.embed.description'))
                 .addFields(
@@ -21,7 +21,7 @@ module.exports = {
                     }
                 ),
 
-                new discord.EmbedBuilder()
+                new EmbedBuilder()
                 .setTitle(getLocaleTranslation('ja', 'commands.dev.localetest.embed.title'))
                 .setDescription(getLocaleTranslation('ja', 'commands.dev.localetest.embed.description'))
                 .addFields(

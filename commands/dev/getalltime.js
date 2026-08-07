@@ -1,13 +1,14 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { ms_convert, getLocaleTranslation } = require('../../static/utils');
+const { ms_convert, getLocaleTranslation } = require('#jikan/utils.js');
+const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
 const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.mystats.description')),
-    async run(discord, client, interaction) {
-        const time = await client.database.getAllUserTime(interaction.user.id, interaction.guild.id);
+    async run(client, interaction) {
+        const time = await JikanMySQLDatabase.getAllUserTime(interaction.user.id, interaction.guildId);
         const time_now = Date.now();
         const locale = interaction.locale;
 

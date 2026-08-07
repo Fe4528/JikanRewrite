@@ -1,22 +1,22 @@
 const mysql = require("mysql2/promise");
-const { JikanDBError, consoleColor, ms_convert } = require("./utils.js");
-const telemetry = require("./telemetry.js");
+const { JikanDBError, consoleColor, ms_convert } = require('#jikan/utils.js');
+const telemetry = require("#jikan/telemetry.js");
 
 class JikanMySQLDatabase {
     static {
         console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
-
-        this.pool = mysql.createPool({
-            host: process.env.MYSQL_ENDPOINT,
-            user: process.env.MYSQL_USER,
-            password: process.env.MYSQL_PASSWORD,
-            database: process.env.MYSQL_DBNAME,
-            port: process.env.MYSQL_PORT,
-            waitForConnections: true,
-            connectionLimit: 4,
-            queueLimit: 0
-        });
     }
+    
+    static #pool = mysql.createPool({
+        host: process.env.MYSQL_ENDPOINT,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DBNAME,
+        port: process.env.MYSQL_PORT,
+        waitForConnections: true,
+        connectionLimit: 4,
+        queueLimit: 0
+    });
 
     /**
      * Add user in global index (not GlobalLeaderboards)
@@ -26,7 +26,7 @@ class JikanMySQLDatabase {
      */
     static async addUser(params) {
         try {
-            this.pool.execute('insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)', [
+             await this.#pool.execute('insert ignore into JikanUser (user_id, user_name, is_hidden) values (?, ?, ?)', [
                 params.user_id,
                 params.user_name,
                 0
@@ -46,20 +46,14 @@ class JikanMySQLDatabase {
      */
     static async createServerData(id) {
         let connection;
-        // in testing, this should remove the datas because i will
-        // simulate an "on join" event so i don't have to
-        // kick the bot and join multiple times
 
-        // make data
-        // not sure if i need to use await here...
-        // but we're not waiting for any data so
-        // it should be good
-        try { 
-            this.pool.execute('insert ignore into JikanGuildSettings (server_id) values (?)', [id])
-            // server settings
+        try {
+            // server settings and local leaderboard for server
+            const query = "insert ignore into JikanGuildSettings (server_id) values (?);";
+            // if it works it works i guess
 
-            this.pool.execute(`create table if not exists JikanGuildLeaderboard_${id} (user_id varchar(30) primary key not null, user_name varchar(50) not null, vc_time bigint not null)`);
-            // local leaderboard for server
+            await this.#pool.query(query, [id])
+            
 
             telemetry.log("create_server_data", "_calls");
             console.log(consoleColor(`Finished initializing server data for ${id}`, "green"));
@@ -77,18 +71,17 @@ class JikanMySQLDatabase {
      */
     static async getAllUserTime(user_id, guild_id) {
         try {
-            const [rows] = await this.pool.query(
+            const [rows] = await this.#pool.query(
                 `select 
                     userdb.user_id,
-                    local.vc_time as local_time,
-                    global.vc_time as global_time
-                from JikanUser
-                    as userdb
-                left join JikanGlobalLeaderboard
-                    as global on userdb.user_id = global.user_id
-                left join JikanGuildLeaderboard_${guild_id} 
-                    as local on global.user_id = local.user_id
-                where userdb.user_id = (?)`, [user_id]
+                    coalesce(userdb.is_hidden, 0) as user_hidden,
+                    coalesce(sum(case when lb.server_id = ? then lb.vc_time else 0 end), 0) as local_time,
+                    coalesce(sum(lb.vc_time), 0) as global_time
+                from JikanUser as userdb
+                left join JikanGuildLeaderboard as lb 
+                    on userdb.user_id = lb.user_id
+                where userdb.user_id = ?
+                group by userdb.user_id, userdb.is_hidden;`, [guild_id, user_id]
             );
 
             telemetry.log("get_all_user_time", "_calls");
@@ -105,7 +98,7 @@ class JikanMySQLDatabase {
      */
     static async getBanList() {
         try {
-            const [rows] = await this.pool.query(
+            const [rows] = await this.#pool.query(
                 `select id from JikanBannedIDs`
             );
 
@@ -120,18 +113,69 @@ class JikanMySQLDatabase {
     }
 
     /**
-     * Get leaderboard
-     * @param {string} type
-     * @param {string} guild_id
-     * @param {string} value
-     * @param {string} order
+     * Used for the compare command
+     * @param {object} params
+     * @param {string} params.server_id Server ID
+     * @param {string} params.uid_1 User 1
+     * @param {string} params.uid_2 User 2
+     * @param {string} scope
      */
-    static async getLeaderboardFrom(type, guild_id = null, value = "vc_time", order = "desc") {
+    static async getBothUserTime(params, scope) {
+    try {
+        let query = `
+            select
+                coalesce(sum(case when user_id = ? then vc_time else 0 end), 0) as user1_time,
+                coalesce(sum(case when user_id = ? then vc_time else 0 end), 0) as user2_time
+            from JikanGuildLeaderboard
+        `;
+
+        const query_params = [params.uid_1, params.uid_2];
+
+        if (scope != "global") {
+            query += ` where server_id = ?`;
+            query_params.push(params.server_id);
+        }
+        const [rows] = await this.#pool.query(query, query_params);
+        telemetry.log('get_both_user_time', '_calls');
+        return rows[0]; 
+    } catch(e) {
+        telemetry.log('get_both_user_time', '_errors');
+        throw e;
+    }
+}
+
+    /**
+     * Get leaderboard
+     * 
+     * @param {object} obj 
+     * @param {string} obj.type Type of scope (global or local)
+     * @param {string} obj.guild_id The ID of the server
+     * @param {string} obj.value [Sorting] What value to sort
+     * @param {string} obj.order [Sorting] Sort list (asc or desc)
+     */
+    // type, guild_id = null, value = "vc_time", order = "desc"
+    static async getLeaderboardFrom(obj) {
         try {
-            const table = this.getLeaderboardScope(type, guild_id);
-            const [rows] = await this.pool.query(
-                `select * from ${table} order by ${value} ${order}`
-            );
+            const user_selected_type = obj.type.toUpperCase();
+
+            let query = ``;
+            let params = [];
+            // space at end is needed
+            // for concatenation below
+
+            if (user_selected_type === "GLOBAL") {
+                query = `select user_id, max(user_name) as user_name, sum(vc_time) as vc_time
+                    from JikanGuildLeaderboard
+                    group by user_id
+                    order by vc_time ${obj.order}`;
+            } else {
+                query = `select * from JikanGuildLeaderboard 
+                    where server_id = ? 
+                    order by ${obj.value} ${obj.order}`;
+                params.push(obj.guild_id);
+            }
+
+            const [rows] = await this.#pool.query(query, params);
 
             telemetry.log("get_leaderboard_from", "_calls");
             return rows;
@@ -144,20 +188,16 @@ class JikanMySQLDatabase {
 
     /**
      * Get leaderboard table name
-     * @param {string} type GLOBAL | LOCAL | TEMP
-     * @param {string} guild_id
+     * @param {string} type GLOBAL | LOCAL
      */
-    static getLeaderboardScope(type, guild_id) {
+    static getLeaderboardScope(type) {
         switch (type.toUpperCase()) {
             case "GLOBAL":
                 telemetry.log("get_leaderboard_scope", "_calls");
                 return "JikanGlobalLeaderboard";
             case "LOCAL":
                 telemetry.log("get_leaderboard_scope", "_calls");
-                return `JikanGuildLeaderboard_${guild_id}`;
-            case "REALTIME":
-                telemetry.log("get_leaderboard_scope", "_calls");
-                return `JikanGuildLeaderboardTemp_${guild_id}`;
+                return "JikanGuildLeaderboard";
             default:
                 telemetry.log("get_leaderboard_scope", "_errors");
                 throw new JikanDBError("Invalid leaderboard scope");
@@ -165,50 +205,21 @@ class JikanMySQLDatabase {
     }
 
     /**
-     * Get user from leaderboard
-     * @param {object} params
-     * @returns {object|null}
+     * Get the language set for the server
+     * @param {string} id 
      */
-    static async getUser(params) {
+    static async getServerLocale(id) {
         try {
-            const table = this.getLeaderboardScope(params.type, params.guild_id);
-
-            const [rows] = await this.pool.query(
-                `select * from ${table} where user_id = ?`,
-                [params.id]
+            const [rows] = await this.#pool.query(
+                `select server_locale from JikanGuildSettings where server_id = ?`,
+                [id]
             );
 
-            telemetry.log("get_user", "_calls");
-            return rows.length ? rows[0] : null;
+            telemetry.log('get_server_lang', '_calls');
 
-        }
-        catch (e) {
-            telemetry.log("get_user", "_errors");
-            throw new JikanDBError(e.message);
-        }
-    }
-
-    /**
-     * Get time entry from leaderboard
-     * @param {string} user_id
-     * @param {string} guild_id
-     * @param {string} scope
-     * @returns {object|null}
-     */
-    static async getUserTimeFrom(user_id, guild_id, scope) {
-
-        try {
-            const table = this.getLeaderboardScope(scope, guild_id);
-            const [rows] = await this.pool.query(
-                `select * from ${table} where user_id = ?`,
-                [user_id]
-            );
-
-            telemetry.log("get_user_time_from", "_calls");
-            return rows.length ? rows[0] : null;
-        }
-        catch (e) {
-            telemetry.log("get_user_time_from", "_errors");
+            return rows[0].server_locale;
+        } catch(e) {
+            telemetry.log('get_server_lang', '_errors');
             throw new JikanDBError(e.message);
         }
     }
@@ -216,6 +227,12 @@ class JikanMySQLDatabase {
     /**
      * Update user VC time
      * @param {object} params
+     * @param {string} params.current_time The user's accumulated time
+     * @param {string} params.guild_id Guild ID
+     * @param {string} params.id User ID
+     * @param {string} params.mode Mode of transaction to
+     * @param {string} params.user_name User name
+     * 
      */
     static async updateUserTime(params) {
         try {
@@ -224,49 +241,32 @@ class JikanMySQLDatabase {
                 return;
             }
 
-            const table = this.getLeaderboardScope(params.type, params.guild_id);
-            if (params.mode == "DELETE") {
-                await this.pool.query(
-                    `delete from ${table} where user_id = ?`,
-                    [params.id]
+            if (params.mode === "DELETE") {
+                await this.#pool.query(
+                    `delete from JikanGuildLeaderboard where server_id = ? and user_id = ?`,
+                    [params.guild_id, params.id]
                 );
                 return;
             }
 
-            let query;
-
-            if (params.mode == "UPDATE") {
-                query = `
-                insert into ${table} (user_id, user_name, vc_time)
-                values (?, ?, ?)
+            let query = `
+                insert into JikanGuildLeaderboard (user_id, user_name, vc_time, server_id)
+                values (?, ?, ?, ?) as new_data
                 on duplicate key update
-                    vc_time = vc_time + values(vc_time),
-                    user_name = values(user_name)
+                    vc_time = JikanGuildLeaderboard.vc_time + new_data.vc_time,
+                    user_name = new_data.user_name
                 `;
-            }
-            else if (params.mode == "SET") {
-                query = `
-                insert into ${table} (user_id, user_name, vc_time)
-                values (?, ?, ?)
-                on duplicate key update
-                    vc_time = values(vc_time),
-                    user_name = values(user_name)
-                `;
-            }
-            else {
-                throw new JikanDBError(`Unsupported mode: ${params.mode}`);
-            }
 
-            await this.pool.query(query, [
+            await this.#pool.query(query, [
                 params.id,
                 params.user_name,
-                params.current_time
+                params.current_time,
+                params.guild_id
             ]);
 
             telemetry.log("update_user_time", "_calls");
         }
         catch (e) {
-
             telemetry.log("update_user_time", "_errors");
             throw new JikanDBError(e.message);
         }
@@ -280,7 +280,7 @@ class JikanMySQLDatabase {
     static async userExists(user_id) {
 
         try {
-            const [rows] = await this.pool.query(
+            const [rows] = await this.#pool.query(
                 "select 1 from JikanUser where user_id = ? limit 1",
                 [user_id]
             );

@@ -4,6 +4,10 @@ const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
 })
 
+/**
+ * @typedef {import("#translation_key").TranslationKey} TranslationKey
+ */
+
 function load_locale(locale) {
     let locale_file;
 
@@ -132,13 +136,15 @@ module.exports.ms_convert = (ms) => {
  * Get the locale translation for a given key.
  * If language is not found, defaults to en-US
  * @param {object} interaction 
- * @param {string} key
+ * @param {TranslationKey} key
  * @param {'en-US' | 'ja'} locale
+ * @param {...any} vars
+ * @returns Translated string for locale
  */
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "Reserved String";
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "[Reserved String]";
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;
@@ -147,7 +153,7 @@ module.exports.getLocaleTranslation = function (locale, key, ...vars) {
 
 /**
  * Template for localization
- * @param {any} key
+ * @param {TranslationKey} key
  * @returns object
  */
 module.exports.localizationTemplate = (key) => ({
