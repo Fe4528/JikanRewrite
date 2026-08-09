@@ -160,8 +160,6 @@ class JikanMySQLDatabase {
 
             let query = ``;
             let params = [];
-            // space at end is needed
-            // for concatenation below
 
             if (user_selected_type === "GLOBAL") {
                 query = `select user_id, max(user_name) as user_name, sum(vc_time) as vc_time
@@ -183,24 +181,6 @@ class JikanMySQLDatabase {
         catch (e) {
             telemetry.log("get_leaderboard_from", "_errors");
             throw new JikanDBError(e.message);
-        }
-    }
-
-    /**
-     * Get leaderboard table name
-     * @param {string} type GLOBAL | LOCAL
-     */
-    static getLeaderboardScope(type) {
-        switch (type.toUpperCase()) {
-            case "GLOBAL":
-                telemetry.log("get_leaderboard_scope", "_calls");
-                return "JikanGlobalLeaderboard";
-            case "LOCAL":
-                telemetry.log("get_leaderboard_scope", "_calls");
-                return "JikanGuildLeaderboard";
-            default:
-                telemetry.log("get_leaderboard_scope", "_errors");
-                throw new JikanDBError("Invalid leaderboard scope");
         }
     }
 
@@ -238,14 +218,6 @@ class JikanMySQLDatabase {
         try {
             if (!params.id || (!params.user_name && params.mode !== "DELETE") || !params.guild_id) {
                 console.log("One or more param is missing");
-                return;
-            }
-
-            if (params.mode === "DELETE") {
-                await this.#pool.query(
-                    `delete from JikanGuildLeaderboard where server_id = ? and user_id = ?`,
-                    [params.guild_id, params.id]
-                );
                 return;
             }
 
