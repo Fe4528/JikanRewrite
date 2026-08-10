@@ -67,11 +67,11 @@ module.exports = {
                 .addFields(
                     {
                         name: compare_result.user1_time > compare_result.user2_time ? `${interaction.user.username} :crown:` : interaction.user.username,
-                        value: code_block(ms_convert(compare_result.user1_time))
+                        value: code_block(ms_convert(compare_result.user1_time, interaction.jikan_server_locale))
                     },
                     {
                         name:  compare_result.user2_time > compare_result.user1_time ? `${selected_user.username} :crown:` : selected_user.username,
-                        value: code_block(ms_convert(compare_result.user2_time))
+                        value: code_block(ms_convert(compare_result.user2_time, interaction.jikan_server_locale))
                     }
                 )
             }

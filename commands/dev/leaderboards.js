@@ -6,10 +6,10 @@ const { SlashCommandBuilder } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 const path = require('path');
 
-function formatLeaderboardRow(user, ranking, selected_scope, selected_value) {
+function formatLeaderboardRow(user, ranking, selected_scope, selected_value, locale) {
     const display_time = (selected_scope === "realtime" && user.vc_time !== 0)
-        ? ms_convert(Date.now() - user.vc_time)
-        : ms_convert(user.vc_time);
+        ? ms_convert(Date.now() - user.vc_time, locale)
+        : ms_convert(user.vc_time, locale);
 
     return `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${display_time}`;
 }
@@ -17,13 +17,13 @@ function formatLeaderboardRow(user, ranking, selected_scope, selected_value) {
 function getMyRankingString(lb_map, interaction, selected_scope) {
     const mydata = lb_map.get(interaction.user.id);
     if (!mydata) {
-        return getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.myrank_not_found');
+        return getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.myrank_not_found');
     }
 
     const { rank, data } = mydata;
     const mytime = (selected_scope === "realtime" && data.vc_time !== 0)
-        ? ms_convert(Date.now() - data.vc_time)
-        : ms_convert(data.vc_time);
+        ? ms_convert(Date.now() - data.vc_time, interaction.jikan_server_locale)
+        : ms_convert(data.vc_time, interaction.jikan_server_locale);
 
     return `${rank}. ${interaction.user.username} - ${mytime}`;
 }
@@ -165,7 +165,7 @@ module.exports = {
                 lb_map.set(user.user_id, { rank: ranking, data: user });
 
                 leaderboard_contents.push(
-                    formatLeaderboardRow(user, ranking, selected_scope, selected_value)
+                    formatLeaderboardRow(user, ranking, selected_scope, selected_value, interaction.jikan_server_locale)
                 );
             }
         } else {
