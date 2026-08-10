@@ -127,8 +127,6 @@ module.exports = {
                 order: selected_order
             });
         }
-        
-        console.log(lb);
 
         //lb = lb.slice(0, 1)
 
