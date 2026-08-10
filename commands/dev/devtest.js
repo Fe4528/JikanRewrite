@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { getLocaleTranslation, localizationTemplate } = require('../../static/utils.js');
+const { getLocaleTranslation, localizationTemplate } = require('#jikan/utils.js');
 const path = require('path');
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.devtest.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.dev.devtest.description')),
-    async run(discord, client, interaction) {
+    async run(client, interaction) {
         interaction.reply("dev test");
     }
 }

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const node_os = require('node-os-utils');
-const { getLocaleTranslation, code_block, localizationTemplate } = require('../../static/utils.js');
+const { getLocaleTranslation, code_block, localizationTemplate } = require('#jikan/utils.js');
 const path = require('path');
 
 module.exports = {

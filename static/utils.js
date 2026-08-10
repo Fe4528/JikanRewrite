@@ -4,6 +4,10 @@ const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
 })
 
+/**
+ * @typedef {import("#translation_key").TranslationKey} TranslationKey
+ */
+
 function load_locale(locale) {
     let locale_file;
 
@@ -101,7 +105,7 @@ module.exports.code_block = (txt) => {
  * @param {number} ms Milliseconds
  * @returns 
  */
-module.exports.ms_convert = (ms) => {
+module.exports.ms_convert = (ms, locale = "en-US") => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -117,12 +121,12 @@ module.exports.ms_convert = (ms) => {
 
     const duration = [];
     if (years > 0) duration.push(`${years}y`);
-    if (remaining_days > 0) duration.push(`${remaining_days}d`);
-    if (remaining_hours > 0) duration.push(`${remaining_hours}h`);
-    if (remaining_minutes > 0) duration.push(`${remaining_minutes}m`);
+    if (remaining_days > 0) duration.push(`${remaining_days}${this.getLocaleTranslation(locale, 'time.day')}`);
+    if (remaining_hours > 0) duration.push(`${remaining_hours}${this.getLocaleTranslation(locale, 'time.hour')}`);
+    if (remaining_minutes > 0) duration.push(`${remaining_minutes}${this.getLocaleTranslation(locale, 'time.minute')}`);
     
     if (final_seconds > 0 || duration.length === 0) {
-        duration.push(`${final_seconds}s`);
+        duration.push(`${final_seconds}${this.getLocaleTranslation(locale, 'time.second')}`);
     }
 
     return duration.join(' ');
@@ -130,15 +134,17 @@ module.exports.ms_convert = (ms) => {
 
 /**
  * Get the locale translation for a given key.
- * You can just put any gibberish like "sdjakhfjkshfkkjshdf" to make it return the default locale (en-US)
+ * If language is not found, defaults to en-US
  * @param {object} interaction 
- * @param {string} key
+ * @param {TranslationKey} key
  * @param {'en-US' | 'ja'} locale
+ * @param {...any} vars
+ * @returns Translated string for locale
  */
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? `${locale}.${key}`;
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "[Reserved String]";
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;
@@ -147,7 +153,7 @@ module.exports.getLocaleTranslation = function (locale, key, ...vars) {
 
 /**
  * Template for localization
- * @param {any} key
+ * @param {TranslationKey} key
  * @returns object
  */
 module.exports.localizationTemplate = (key) => ({

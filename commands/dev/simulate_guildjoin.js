@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js')
 const path = require('path');
+const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,13 +12,13 @@ module.exports = {
 		.setDescription("Simulate guildCreate for a server")
         .setRequired(true)
     ),
-    async run(discord, client, interaction) {
+    async run(client, interaction) {
         let selected_id = interaction.options.getString("server_id");
         let guild = await client.guilds.fetch(selected_id);
         
         if (!guild) return interaction.reply("Invalid guild");
         
-        await client.database.createServerData(selected_id);
+        await JikanMySQLDatabase.createServerData(selected_id);
 
         interaction.reply(`Simulated guild join event for database creation.\nGuildID: ${selected_id}`);
     }

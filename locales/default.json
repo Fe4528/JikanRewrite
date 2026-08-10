@@ -46,20 +46,44 @@
 						},
 						"hardware": {
 							"name": "Useless Information",
-							"value": "CPU: {0}\nCPU Usage: {1}%\nOS: {2}"
+							"cpu_value": "CPU: {0}",
+							"cpu_usage_value": "CPU Usage: {0}",
+							"os_value": "OS: {0}"
 						}
 					}
 				}
 			},
-
-			"mystats": {
-				"description": "Check all your VC TIme",
-				"embed": {
-					"title": "{0}'s VC Time",
-					"global_field_name": "Global",
-					"realtime_field_name": "Realtime VC (in this server)",
-					"not_in_vc": "You need to join a VC first"
+			"comparewith": {
+				"description": "Compare your time with other users",
+				"embeds": {
+					"self_compare": {
+						"title": "Why are you comparing with yourself?"
+					},
+					"bot_response": {
+						"title": "Who is this?"
+					},
+					"success": {
+						"description": "Comparing from {0}"
+					}
+				},
+				"options": {
+					"user": {
+						"description": "Select user to compare"
+					},
+					"scope": {
+						"description": "Which leaderboard to compare from"
+					}
 				}
+			},
+			"config": {
+				"description": "Configure the bot in this server",
+				"embeds": {
+					"main": {
+						"title": "Configuration",
+						"description": "Select a configuration that you want to change."
+					}
+				}
+
 			},
 			"leaderboards": {
 				"description": "View VC Leaderboards",
@@ -77,7 +101,49 @@
 				"embeds": {
 					"sort_footer": "Sorting by {0} in {1} order",
 					"no_users": "There are no users in this leaderboard",
-					"no_users_reason": "Join a VC channel to be in this leaderboard!\n\nYou will appear here after you leave the VC.\n-# (Ignore this If Realtime Leaderboard is selected, you will appear here immediately)"
+					"no_users_reason": "Join a VC channel to be in this leaderboard!",
+					"no_users_reason_extra": "You will appear here after you leave the VC.",
+					"no_users_reason_note": "Ignore this if Realtime Leaderboard is selected, you will appear here immediately",
+					"your_rank": "Your rank"
+				},
+				"myrank_not_found": "Not found (No data)"
+			},
+			"stats": {
+				"description": "Check your or other's VC TIme",
+				"options": {
+					"user": {
+						"description": "Check this user's VC Time instead"
+					}
+				},
+				"embed": {
+					"title": "{0}'s VC Time",
+					"local_this_guild": "In this server",
+					"realtime_this_guild": "Realtime VC (in this server)",
+					"not_in_vc": "Needs to be in a VC first"
+				}
+			}
+		}
+	},
+	"buttons": {
+		"config": {
+			"JIKAN_BTN_LB_NAME_CONFIG": "Leaderboard Name",
+			"JIKAN_BTN_LOG_CHANNEL_CONFIG": "Log Channel",
+			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "Ignored Role"
+		}
+	},
+	"modals": {
+		"config": {
+			"JIKAN_MODAL_LB_NAME_CONFIG": {
+				"title": "Leaderboard Name",
+				"label_info": "Enter a new leaderboard name for this server.",
+				"input_placeholder": "Max 40 characters."
+			},
+			"JIKAN_MODAL_LOG_CHANNEL_CONFIG": {
+				"title": "Log Channel",
+				"label_info": "Set a logging channel for this server.",
+				"input_placeholder": "Only one channel can be selected.",
+				"responses": {
+					"success": "Successfully set the logging channel to: {0}"
 				}
 			}
 		}
@@ -98,13 +164,28 @@
 		"realtime": "Realtime",
 		"global": "Global",
 		"local": "Local",
-		"error":  "Error"
+		"error":  "Error",
+
+		"leave_blank_reset": "Leave blank to reset.",
+		"config_reset": "Configuration has been reset.",
+		"config_cache_miss": "There was nothing to reset."
 	},
 	"leaderboard_titles": {
-		"_comment": "realtime and local need a {0} for the server name, will not use this if they set a custom title",
 		"realtime": "{0} | Realtime VC Leaderboard",
 		"global": "Global VC Leaderboard",
 		"local": "{0} | Local VC Leaderboard"
 	},
-	"banned_message": "The user/server is not allowed to use Jikan.\nThe decision is final, you may **__NOT__** request for unbans.\n\n[READ THE TERMS OF SERVICE](<https://ironworks.neocities.org/apps/Jikan/tos/>)"
+	"system": {
+		"banned_message": "The user/server is not allowed to use Jikan.",
+		"button_not_implemented": "This button is not working. Stop clicking this",
+		"command_error": "An error has occured while trying to execute this command.",
+		"generic_error": "An error has occured, cannot continue.",
+		"no_permissions": "You don't have necessary permissions to continue."
+	},
+	"time": {
+		"day": "d",
+		"hour": "h",
+		"minute": "m",
+		"second": "s"
+	}
 }
