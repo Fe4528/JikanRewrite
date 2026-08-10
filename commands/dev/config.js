@@ -10,27 +10,25 @@ module.exports = {
     .setDescriptionLocalizations(localizationTemplate('commands.public.config.description')),
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
-        const server_locale = JikanCache.getServerLangCache(interaction.guildId);
-
         try {            
             const embed = new EmbedBuilder()
-            .setTitle(getLocaleTranslation(server_locale, 'commands.public.config.embeds.main.title'))
-            .setDescription(getLocaleTranslation(server_locale, 'commands.public.config.embeds.main.description'));
+            .setTitle(getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.title'))
+            .setDescription(getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.description'));
 
             const lb_name_config = new ButtonBuilder()
             .setCustomId("JIKAN_BTN_LB_NAME_CONFIG")
             .setStyle(ButtonStyle.Secondary)
-            .setLabel(getLocaleTranslation(server_locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
+            .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
 
             const log_channel_config = new ButtonBuilder()
             .setCustomId("JIKAN_BTN_LOG_CHANNEL_CONFIG")
             .setStyle(ButtonStyle.Secondary)
-            .setLabel(getLocaleTranslation(server_locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
+            .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
 
             const ignored_role_config = new ButtonBuilder()
             .setCustomId('JIKAN_BTN_IGNORED_ROLE_CONFIG')
             .setStyle(ButtonStyle.Secondary)
-            .setLabel(getLocaleTranslation(server_locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
+            .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
 
             const button_row = new ActionRowBuilder().addComponents(lb_name_config, log_channel_config, ignored_role_config);
 
@@ -40,7 +38,7 @@ module.exports = {
                 //flags: [MessageFlags.Ephemeral]
             })
         } catch (e) {
-            interaction.reply(`${getLocaleTranslation(server_locale, 'system.command_error')}\n${code_block(e.message)}`);
+            interaction.reply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
         }
     }
 }

@@ -104,7 +104,6 @@ module.exports = {
 
         const guild = interaction.guild;
         const server_lb_name = JikanCache.getServerLBNameCache(interaction.guildId);
-        const server_locale = JikanCache.getServerLangCache(interaction.guildId);
         const time_took = Date.now();
         
         
@@ -171,12 +170,12 @@ module.exports = {
             }
         } else {
             leaderboard_contents = 
-                `:warning: ${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users',
-                getLocaleTranslation(interaction.locale, `leaderboard_titles.${selected_scope}`))} :warning:\n\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason')}\n\n${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason_extra')}\n-# ${getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.no_users_reason_note')}\n
+                `:warning: ${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.no_users',
+                getLocaleTranslation(interaction.jikan_server_locale, `leaderboard_titles.${selected_scope}`))} :warning:\n\n${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.no_users_reason')}\n\n${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.no_users_reason_extra')}\n-# ${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.no_users_reason_note')}\n
                 ${
-                    getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
-                        getLocaleTranslation(interaction.locale, `common.${selected_value}`),
-                        getLocaleTranslation(interaction.locale, `common.${selected_order}`))
+                    getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.sort_footer',
+                        getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_value}`),
+                        getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_order}`))
                 }
                 `;
         }
@@ -185,7 +184,7 @@ module.exports = {
 
         let lb_entry_chunk;
         if (typeof leaderboard_contents != 'string') {
-            const chunked = chunk(leaderboard_contents, 20).map(c => code_block(c.join("\n")) + `\n### Your rank:\n${code_block(myrank_value)}`);
+            const chunked = chunk(leaderboard_contents, 20).map(c => code_block(c.join("\n")) + `\n### ${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.your_rank')}:\n${code_block(myrank_value)}`);
             lb_entry_chunk = selected_scope == "global" ? chunked.slice(0, 20) : chunked;
         } else {
             lb_entry_chunk = [leaderboard_contents];
@@ -210,11 +209,11 @@ module.exports = {
        let embed_title;
 
        if (selected_scope == 'global') {
-            embed_title = getLocaleTranslation(server_locale, 'leaderboard_titles.global');
+            embed_title = getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.global');
        } else if (selected_scope == 'local') {
-            embed_title = `${!server_lb_name ? getLocaleTranslation(interaction.locale, 'leaderboard_titles.local', interaction.guild.name) : server_lb_name}`;
+            embed_title = `${!server_lb_name ? getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.local', interaction.guild.name) : server_lb_name}`;
        } else {
-            embed_title = `${getLocaleTranslation(interaction.locale, 'leaderboard_titles.realtime', interaction.guild.name)}`;
+            embed_title = `${getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.realtime', interaction.guild.name)}`;
        }
 
         pagination
@@ -222,9 +221,9 @@ module.exports = {
             .setDescriptions(lb_entry_chunk)
             .setColor('#ffffff')
             .setFooter({ text: `{pageNumber}/{totalPages} | ${Date.now() - time_took}ms ${(lb ? lb.length : 0)} user(s) | ${
-                getLocaleTranslation(interaction.locale, 'commands.public.leaderboards.embeds.sort_footer',
-                getLocaleTranslation(interaction.locale, `common.${selected_value}`),
-                getLocaleTranslation(interaction.locale, `common.${selected_order}`))
+                getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.sort_footer',
+                getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_value}`),
+                getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_order}`))
             }`});
 
         pagination.render();

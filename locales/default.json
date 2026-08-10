@@ -103,7 +103,8 @@
 					"no_users": "There are no users in this leaderboard",
 					"no_users_reason": "Join a VC channel to be in this leaderboard!",
 					"no_users_reason_extra": "You will appear here after you leave the VC.",
-					"no_users_reason_note": "Ignore this if Realtime Leaderboard is selected, you will appear here immediately"
+					"no_users_reason_note": "Ignore this if Realtime Leaderboard is selected, you will appear here immediately",
+					"your_rank": "Your rank"
 				},
 				"myrank_not_found": "Not found (No data)"
 			},
@@ -180,5 +181,11 @@
 		"command_error": "An error has occured while trying to execute this command.",
 		"generic_error": "An error has occured, cannot continue.",
 		"no_permissions": "You don't have necessary permissions to continue."
+	},
+	"time": {
+		"day": "d",
+		"hour": "h",
+		"minute": "m",
+		"second": "s"
 	}
 }

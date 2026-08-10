@@ -11,7 +11,7 @@ module.exports = {
         try {
             // code goes here
         } catch (e) {
-            interaction.reply(`${getLocaleTranslation(server_locale, 'system.command_error')}\n${code_block(e.message)}`);
+            interaction.reply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
         }
     }
 }

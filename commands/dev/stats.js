@@ -17,8 +17,6 @@ module.exports = {
         .setDescriptionLocalizations(localizationTemplate('commands.public.stats.options.user.description'))
     ),
     async run(client, interaction) {
-        const server_locale = JikanCache.getServerLangCache(interaction.guildId);
-
         try {
             await interaction.deferReply();
 
@@ -28,20 +26,20 @@ module.exports = {
             const user_temp_time = JikanTempTime.getServer(interaction.guildId).get(target_user.id);
 
             const embed = new EmbedBuilder()
-            .setTitle(getLocaleTranslation(server_locale, "commands.public.stats.embed.title", target_user.username))
+            .setTitle(getLocaleTranslation(interaction.jikan_server_locale, "commands.public.stats.embed.title", target_user.username))
             .setThumbnail(target_user.avatarURL())
             .addFields(
                 {
-                    name: getLocaleTranslation(server_locale, "common.global"),
+                    name: getLocaleTranslation(interaction.jikan_server_locale, "common.global"),
                     value: code_block(ms_convert(user_data?.global_time || 0)),
                 },
                 {
-                    name: getLocaleTranslation(server_locale, "commands.public.stats.embed.local_this_guild"),
+                    name: getLocaleTranslation(interaction.jikan_server_locale, "commands.public.stats.embed.local_this_guild"),
                     value: code_block(ms_convert(user_data?.local_time || 0)),
                 },
                 {
-                    name: getLocaleTranslation(server_locale, "commands.public.stats.embed.realtime_this_guild"),
-                    value: code_block(user_temp_time ? ms_convert(Date.now() - user_temp_time.vc_time) : getLocaleTranslation(server_locale, "commands.public.stats.embed.not_in_vc")),
+                    name: getLocaleTranslation(interaction.jikan_server_locale, "commands.public.stats.embed.realtime_this_guild"),
+                    value: code_block(user_temp_time ? ms_convert(Date.now() - user_temp_time.vc_time) : getLocaleTranslation(interaction.jikan_server_locale, "commands.public.stats.embed.not_in_vc")),
                 }
             )
 
@@ -49,7 +47,7 @@ module.exports = {
                 embeds: [embed]
             })
         } catch(e) {
-            interaction.editReply(`${getLocaleTranslation(server_locale, 'system.command_error')}\n${code_block(e.message)}`);
+            interaction.editReply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
         }
     }
 }

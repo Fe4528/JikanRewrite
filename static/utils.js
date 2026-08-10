@@ -105,7 +105,7 @@ module.exports.code_block = (txt) => {
  * @param {number} ms Milliseconds
  * @returns 
  */
-module.exports.ms_convert = (ms) => {
+module.exports.ms_convert = (ms, locale = "en-US") => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -121,12 +121,12 @@ module.exports.ms_convert = (ms) => {
 
     const duration = [];
     if (years > 0) duration.push(`${years}y`);
-    if (remaining_days > 0) duration.push(`${remaining_days}d`);
-    if (remaining_hours > 0) duration.push(`${remaining_hours}h`);
-    if (remaining_minutes > 0) duration.push(`${remaining_minutes}m`);
+    if (remaining_days > 0) duration.push(`${remaining_days}${this.getLocaleTranslation(locale, 'time.day')}`);
+    if (remaining_hours > 0) duration.push(`${remaining_hours}${this.getLocaleTranslation(locale, 'time.hour')}`);
+    if (remaining_minutes > 0) duration.push(`${remaining_minutes}${this.getLocaleTranslation(locale, 'time.minute')}`);
     
     if (final_seconds > 0 || duration.length === 0) {
-        duration.push(`${final_seconds}s`);
+        duration.push(`${final_seconds}${this.getLocaleTranslation(locale, 'time.second')}`);
     }
 
     return duration.join(' ');

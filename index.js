@@ -85,6 +85,8 @@ client.on('interactionCreate', async interaction => {
         const lang_db = await JikanMySQLDatabase.getServerLocale(interaction.guildId);
 
         lang_db ? JikanCache.addOrSetServerLangCache(interaction.guildId, lang_db) : JikanCache.addOrSetServerLangCache(interaction.guildId, 'en-US');
+    } else {
+        interaction.jikan_server_lang = lang_cache;
     }
 
     if (interaction.isChatInputCommand()) {

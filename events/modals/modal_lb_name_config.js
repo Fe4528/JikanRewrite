@@ -18,7 +18,7 @@ module.exports = {
 
             interaction.editReply(code_block(str));
         } catch(e) {
-            interaction.editReply(`${getLocaleTranslation(server_locale, 'system.command_error')}\n${code_block(e.message)}`);
+            interaction.editReply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
         }
     }
 }

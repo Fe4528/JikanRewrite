@@ -6,22 +6,20 @@ module.exports = {
     custom_id: "JIKAN_BTN_LOG_CHANNEL_CONFIG",
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
-        const server_locale = JikanCache.getServerLangCache(interaction.guildId)
-
         const modal = new ModalBuilder()
         .setCustomId("JIKAN_MODAL_LOG_CHANNEL_CONFIG")
-        .setTitle(getLocaleTranslation(server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.title'));
+        .setTitle(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.title'));
         
         const log_channel_selector = new ChannelSelectMenuBuilder()
         .setCustomId("JIKAN_MODAL_CHANNEL_SELECTOR")
-        .setPlaceholder(getLocaleTranslation(server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.input_placeholder'))
+        .setPlaceholder(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.input_placeholder'))
         .addChannelTypes(ChannelType.GuildText)
         .setMaxValues(1)
         .setRequired(false);
 
         const label = new LabelBuilder()
-        .setLabel(getLocaleTranslation(server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.label_info'))
-        .setDescription(getLocaleTranslation(server_locale, 'common.leave_blank_reset'))
+        .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.label_info'))
+        .setDescription(getLocaleTranslation(interaction.jikan_server_locale, 'common.leave_blank_reset'))
         .setChannelSelectMenuComponent(log_channel_selector);
 
         modal.addLabelComponents(label);

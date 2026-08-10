@@ -35,8 +35,6 @@ module.exports = {
         )
     ),
     async run(client, interaction) {
-        const server_locale = JikanCache.getServerLangCache(interaction.guildId);
-
         try {
             const selected_scope = interaction.options.getString("scope") || 'local'
             const selected_user = interaction.options.getUser('user')
@@ -47,11 +45,11 @@ module.exports = {
                 // comparing with yourself lol
                 embed
                 .setColor('#ff0000')
-                .setTitle(getLocaleTranslation(server_locale, 'commands.public.comparewith.embeds.self_compare.title'))
+                .setTitle(getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.comparewith.embeds.self_compare.title'))
             } else if (selected_user.bot) {
                 embed
                 .setColor('#ffffff')
-                .setTitle(getLocaleTranslation(server_locale, 'commands.public.comparewith.embeds.bot_response.title'))
+                .setTitle(getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.comparewith.embeds.bot_response.title'))
                 .setImage('https://cdn.discordapp.com/attachments/967064220514549760/1533346372936536074/E2wouPdd8fljnl.gif?ex=6a702797&is=6a6ed617&hm=14a0c6ca3383b34ef1f5641dbf684ac3d098cf7039d3a2d01fd729d130b45008&')
             } else {
                 // success
@@ -64,8 +62,8 @@ module.exports = {
                 embed
                 .setTitle(`${interaction.user.username} vs ${selected_user.username}`)
                 .setColor('#ffffff')
-                .setDescription(`${getLocaleTranslation(server_locale, 'commands.public.comparewith.embeds.success.description', 
-                    `\`${getLocaleTranslation(server_locale, `leaderboard_titles.${selected_scope}`, interaction.guild.name)}\``)}`)
+                .setDescription(`${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.comparewith.embeds.success.description', 
+                    `\`${getLocaleTranslation(interaction.jikan_server_locale, `leaderboard_titles.${selected_scope}`, interaction.guild.name)}\``)}`)
                 .addFields(
                     {
                         name: compare_result.user1_time > compare_result.user2_time ? `${interaction.user.username} :crown:` : interaction.user.username,
@@ -82,7 +80,7 @@ module.exports = {
                 embeds: [embed],
             })
         } catch (e) {
-            interaction.reply(`${getLocaleTranslation(server_locale, 'system.command_error')}\n${code_block(e.message)}`);
+            interaction.reply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
         }
     }
 }
