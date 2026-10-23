@@ -1,12 +1,14 @@
-const { ms_convert } = require("./utils");
+const { ms_convert } = require("#jikan/utils.js");
 
 const helper_methods = /** @type {const} */([
     "add_user",
     "create_server_data",
     "get_all_user_time",
     "get_ban_list",
+    "get_both_user_time",
     "get_leaderboard_from",
     "get_leaderboard_scope",
+    "get_server_lang",
     "get_user",
     "get_user_time_from",
     "update_user_time",
@@ -20,17 +22,15 @@ const types = /** @type {const} */ ([
 
 class MySQLTelemetry {
     static {
-        this.time_started = Date.now();
-
         console.log("Got %s telemetry attributes.", helper_methods.length);
 
         helper_methods.forEach((e) => {
             this[e + "_calls"] = 0;
             this[e + "_errors"] = 0;
         })
-
-        //console.log(this);
     }
+
+    static #time_started = Date.now();
 
     /**
      * Count telemetry data
@@ -53,8 +53,8 @@ class MySQLTelemetry {
 
     static getTelemetryResult() {
         let result = ""
-
-        result += `Uptime: ${ms_convert(Date.now() - this.time_started)}\n\n\n`;
+        
+        result += `Uptime: ${ms_convert(Date.now() - this.#time_started)}\n\n\n`;
         result += "=== CALLS (successful runs) ===\n";
         result += helper_methods.map(v => `${this[`${v}_calls`]} ${v}`).join("\n");
         result += "\n\n";

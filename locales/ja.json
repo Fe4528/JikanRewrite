@@ -1,55 +1,190 @@
 {
-    "_comment": "Japanese Translations (Machine Translated for now, need contributors)",
-    "commands": {
-        "dev": {
-            "_comment": "developer commands don't need to be translated but if you want then go ahead",
-            "getuser": {
-                "_description_original": "get user by id",
-                "description": "IDでユーザーを取得",
-                "options": {
-                    "user_id": {
-                        "_original": "id of the user to get",
-                        "description": "取得するユーザーのID"
-                    }
-                }
-            },
-            "devtest": {
-                "description": "開発者テストコマンド"
-            },
-            "localetest": {
-                "description": "ローカルテストコマンド"
-            }
-        },
-        "public": {
-            "about": {
-                "description": "Jikanボットについて",
-                "embed": {
-                    "_title_comment": "Title doesn't need translation",
-                    "title": "Jikan",
-                    "description": {
-                        "creator": "このボットは{0}によって作成されました",
-                        "user_count": "ユーザー数: {0}"
-                    },
-                    "fields": {
-                        "server_count": {
-                            "name": "サーバー数"
-                        },
-                        "ping": {
-                            "name": "レイテンシ"
-                        },
-                        "hardware": {
-                            "name": "役に立たない情報",
-                            "value": "CPU: {0}\nCPU 使用率: {1}%\nOS: {2}"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "common": {
-        "ok": "OK",
-        "cancel": "キャンセル",
-        "yes": "はい",
-        "no": "いいえ"
-    }
+	"translator": "Default (@fe4528)",
+	"commands": {
+		"dev": {
+			"devtest": {
+				"description": "[DEV] 開発者テストコマンド"
+			},
+			"getalltime": {
+				"description": "[DEV] ユーザーの通算時間の取得"
+			},
+			"getuser": {
+				"description": "[DEV] IDからユーザーを取得",
+				"options": {
+					"user_id": {
+						"description": "取得するユーザーのID"
+					}
+				}
+			},
+			"localetest": {
+				"embed": {
+					"title": "ja-JPタイトル",
+					"description": "ja-JP 説明文",
+					"missing": "未翻訳 / 不足しているセクション"
+				}
+			},
+			"telemetry": {
+				"description": "[DEV] 更新可能なテレメトリビューを送信"
+			}
+		},
+		"public": {
+			"about": {
+				"description": "Jikanについて",
+				"embed": {
+					"_title_comment": "Title doesn't need translation",
+					"title": "Jikan",
+					"description": {
+						"creator": "制作者: {0}",
+						"user_count": "ユーザー数: {0}"
+					},
+					"fields": {
+						"server_count": {
+							"name": "サーバー数"
+						},
+						"ping": {
+							"name": "レイテンシ"
+						},
+						"hardware": {
+							"name": "役に立たない情報",
+							"cpu_value": "CPU: {0}",
+							"cpu_usage_value": "CPU使用率: {0}",
+							"os_value": "OS: {0}"
+						}
+					}
+				}
+			},
+			"comparewith": {
+				"description": "他のユーザーと時間を比較する",
+				"embeds": {
+					"self_compare": {
+						"title": "自分自身と比較しようとしています"
+					},
+					"bot_response": {
+						"title": "これは誰ですか？"
+					},
+					"success": {
+						"description": "{0}での比較"
+					}
+				},
+				"options": {
+					"user": {
+						"description": "比較するユーザーを選択"
+					},
+					"scope": {
+						"description": "比較対象のランキング"
+					}
+				}
+			},
+			"config": {
+				"description": "このサーバーのボット設定を行う",
+				"embeds": {
+					"main": {
+						"title": "設定",
+						"description": "変更したい設定を選択してください。"
+					}
+				}
+			},
+			"leaderboards": {
+				"description": "VCランキングを表示",
+				"options": {
+					"scope": {
+						"description": "表示するランキング"
+					},
+					"value": {
+						"description": "並び替える項目"
+					},
+					"order": {
+						"description": "昇順または降順"
+					}
+				},
+				"embeds": {
+					"sort_footer": "{0}を{1}で並び替え中",
+					"no_users": "このランキングにはユーザーがいません",
+					"no_users_reason": "VCに参加してランキングに載りましょう！",
+					"no_users_reason_extra": "VCを退出した後にここに表示されます。",
+					"no_users_reason_note": "リアルタイムランキングが選択されている場合は無視してください。すぐにここに表示されます",
+					"your_rank": "あなたの順位"
+				},
+				"myrank_not_found": "データなし"
+			},
+			"stats": {
+				"description": "自分または他のユーザーのVC時間を確認",
+				"options": {
+					"user": {
+						"description": "指定したユーザーのVC時間を確認"
+					}
+				},
+				"embed": {
+					"title": "{0}のVC時間",
+					"local_this_guild": "このサーバー内",
+					"realtime_this_guild": "リアルタイムVC (このサーバー内)",
+					"not_in_vc": "先にVCに参加する必要があります"
+				}
+			}
+		}
+	},
+	"buttons": {
+		"config": {
+			"JIKAN_BTN_LB_NAME_CONFIG": "ランキング名",
+			"JIKAN_BTN_LOG_CHANNEL_CONFIG": "ログチャンネル",
+			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "除外ロール"
+		}
+	},
+	"modals": {
+		"config": {
+			"JIKAN_MODAL_LB_NAME_CONFIG": {
+				"title": "ランキング名",
+				"label_info": "このサーバーの新しいランキング名を入力してください。",
+				"input_placeholder": "最大40文字"
+			},
+			"JIKAN_MODAL_LOG_CHANNEL_CONFIG": {
+				"title": "ログチャンネル",
+				"label_info": "このサーバーのログチャンネルを設定します。",
+				"input_placeholder": "選択できるチャンネルは1つだけです。",
+				"responses": {
+					"success": "ログチャンネルを{0}に設定しました"
+				}
+			}
+		}
+	},
+	"common": {
+		"ok": "OK",
+		"cancel": "キャンセル",
+		"yes": "はい",
+		"no": "いいえ",
+
+		"vc_time": "VC時間",
+		"user_id": "ユーザーID",
+		"user_name": "ユーザー名",
+
+		"asc": "昇順",
+		"desc": "降順",
+
+		"realtime": "リアルタイム",
+		"global": "グローバル",
+		"local": "ローカル",
+		"error": "エラー",
+
+		"leave_blank_reset": "リセットするには空白のままにしてください。",
+		"config_reset": "設定がリセットされました。",
+		"config_cache_miss": "リセットするものがありませんでした。"
+	},
+	"leaderboard_titles": {
+		"realtime": "{0} | リアルタイムVCランキング",
+		"global": "グローバルVCランキング",
+		"local": "{0} | ローカルVCランキング"
+	},
+	"system": {
+		"banned_message": "このユーザーまたはサーバーはJikanの使用が許可されていません。",
+		"button_not_implemented": "このボタンは動作しません。押すのをやめてください",
+		"command_error": "コマンドの実行中にエラーが発生しました。",
+		"generic_error": "エラーが発生したため、処理を継続できません。",
+		"no_permissions": "続行するために必要な権限がありません。"
+	},
+	"time": {
+		"day": "日",
+		"hour": "時間",
+		"minute": "分",
+		"second": "秒"
+	}
 }
