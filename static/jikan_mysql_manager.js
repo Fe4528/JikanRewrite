@@ -197,7 +197,7 @@ class JikanMySQLDatabase {
 
             telemetry.log('get_server_lang', '_calls');
 
-            return rows[0].server_locale;
+            return rows[0]?.server_locale;
         } catch(e) {
             telemetry.log('get_server_lang', '_errors');
             throw new JikanDBError(e.message);
@@ -216,24 +216,26 @@ class JikanMySQLDatabase {
      */
     static async updateUserTime(params) {
         try {
-            if (!params.id || (!params.user_name && params.mode !== "DELETE") || !params.guild_id) {
+            if (!params.id || !params.user_name || !params.guild_id) {
                 console.log("One or more param is missing");
                 return;
             }
 
-            let query = `
+            const query = `
                 insert into JikanGuildLeaderboard (user_id, user_name, vc_time, server_id)
-                values (?, ?, ?, ?) as new_data
+                values (?, ?, ?, ?)
                 on duplicate key update
-                    vc_time = JikanGuildLeaderboard.vc_time + new_data.vc_time,
-                    user_name = new_data.user_name
+                    vc_time = vc_time + ?,
+                    user_name = ?
                 `;
 
             await this.#pool.query(query, [
                 params.id,
                 params.user_name,
                 params.current_time,
-                params.guild_id
+                params.guild_id,
+                params.current_time,
+                params.user_name
             ]);
 
             telemetry.log("update_user_time", "_calls");

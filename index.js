@@ -82,10 +82,17 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (!lang_cache) {
-        const lang_db = await JikanMySQLDatabase.getServerLocale(interaction.guildId);
+        try {
+            const lang_db = await JikanMySQLDatabase.getServerLocale(interaction.guildId);
+            const locale = lang_db || 'en-US';
 
-        lang_db ? JikanCache.addOrSetServerLangCache(interaction.guildId, lang_db) : JikanCache.addOrSetServerLangCache(interaction.guildId, 'en-US');
-        interaction.jikan_server_locale = lang_db;
+            JikanCache.addOrSetServerLangCache(interaction.guildId, locale);
+            interaction.jikan_server_locale = locale;
+        } catch (e) {
+            console.log("locale lookup failed:", e);
+
+            interaction.jikan_server_locale = 'en-US';
+        }
     } else {
         interaction.jikan_server_locale = lang_cache;
     }
@@ -111,10 +118,10 @@ client.on('interactionCreate', async interaction => {
                 return;
             }
 
-            command.exports.run(client, interaction);
+            await command.exports.run(client, interaction);
         } catch (e) {
             interaction.reply({
-                content: `${getLocaleTranslation(interaction.locale, 'system.command_error')}\n${code_block(e)}`,
+                content: `${getLocaleTranslation(interaction.locale, 'system.command_error')}\n${code_block(e.stack)}`,
                 flags: [discord.MessageFlags.Ephemeral]
             })        
         }
@@ -142,10 +149,10 @@ client.on('interactionCreate', async interaction => {
                 return;
             }
 
-            button.exports.run(client, interaction);
+            await button.exports.run(client, interaction);
         } catch (e) {
             interaction.reply({
-                content: `${getLocaleTranslation(interaction.locale, 'system.command_error')}\n${code_block(e)}`,
+                content: `${getLocaleTranslation(interaction.locale, 'system.generic_error')}\n${code_block(e.stack)}`,
                 flags: [discord.MessageFlags.Ephemeral]
             })
         }
@@ -172,9 +179,12 @@ client.on('interactionCreate', async interaction => {
                 return;
             }
 
-            modal.exports.run(client, interaction);
+            await modal.exports.run(client, interaction);
         } catch(e) {
-
+            interaction.reply({
+                content: `${getLocaleTranslation(interaction.locale, 'system.generic_error')}\n${code_block(e.stack)}`,
+                flags: [discord.MessageFlags.Ephemeral]
+            })
         }
     }
 })
@@ -208,7 +218,7 @@ client.on('voiceStateUpdate', async (os, ns) => {
     }
 
     if (os.channel !== ns.channel) {
-        voice_update_module.changeDetected(os, ns, client)
+        await voice_update_module.changeDetected(os, ns, client)
     }
 })
 

@@ -24,7 +24,7 @@ module.exports = {
 
             const user_data = await JikanMySQLDatabase.getAllUserTime(target_user.id, interaction.guildId);
             const user_temp_time = JikanTempTime.getServer(interaction.guildId).get(target_user.id);
-
+            
             const embed = new EmbedBuilder()
             .setTitle(getLocaleTranslation(interaction.jikan_server_locale, "commands.public.stats.embed.title", target_user.username))
             .setThumbnail(target_user.avatarURL())

@@ -7,7 +7,7 @@ module.exports = {
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
         const modal = new ModalBuilder()
-        .setCustomId('JIKAN_MODAL_LOG_CHANNEL_CONFIG')
+        .setCustomId('JIKAN_MODAL_LB_NAME_CONFIG')
         .setTitle(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LB_NAME_CONFIG.title'));
         
         const lb_name_input = new TextInputBuilder()

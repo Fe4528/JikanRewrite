@@ -160,7 +160,6 @@ module.exports.localizationTemplate = (key) => ({
     'ja': module.exports.getLocaleTranslation('ja', key)
 })
 
-
 /**
  * Generates an ANSI escape code for the given string
  * @param {string} string String to concatenate

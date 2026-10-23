@@ -145,6 +145,14 @@
 				"responses": {
 					"success": "Successfully set the logging channel to: {0}"
 				}
+			},
+			"JIKAN_BTN_IGNORED_ROLE_CONFIG": {
+				"title": "Ignored Role",
+				"label_info": "Set an ignored role for this server",
+				"input_placeholder": "Only one role can be selected.",
+				"responses": {
+					"success": "Successfully set the ignored role to: {0}"
+				}
 			}
 		}
 	},
