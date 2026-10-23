@@ -3,20 +3,26 @@ const { JikanDBError, consoleColor, ms_convert } = require('#jikan/utils.js');
 const telemetry = require("#jikan/telemetry.js");
 
 class JikanMySQLDatabase {
+    static #pool;
+
     static {
         console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
+        
+        (async () => {
+            #pool = await mysql.createPool({
+                host: process.env.MYSQL_ENDPOINT,
+                user: process.env.MYSQL_USER,
+                password: process.env.MYSQL_PASSWORD,
+                database: process.env.MYSQL_DBNAME,
+                port: process.env.MYSQL_PORT,
+                waitForConnections: true,
+                connectionLimit: 4,
+                queueLimit: 0
+            });
+
+            console.log(consoleColor("Success", 'green'));
+        })
     }
-    
-    static #pool = mysql.createPool({
-        host: process.env.MYSQL_ENDPOINT,
-        user: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        database: process.env.MYSQL_DBNAME,
-        port: process.env.MYSQL_PORT,
-        waitForConnections: true,
-        connectionLimit: 4,
-        queueLimit: 0
-    });
 
     /**
      * Add user in global index (not GlobalLeaderboards)
