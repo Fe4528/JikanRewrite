@@ -48,7 +48,7 @@ content: "Hello {0}"
 
 //ja.json ❌
 content: "みなさん、こんにちは" // no dynamic variable
-content: "みなさん{0}と{1}" // extra dynamic variable
+content: "こんにちは{0}と{1}" // extra dynamic variable
 
 //ja.json ✅
 content: "こんにちは{0}さん" // has dynamic variable
