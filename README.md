@@ -41,14 +41,15 @@ The 0 and 1s are to be replaced programatically, so:
 "Hello {0}" where {0} = "World"<br>--> "Hello World"<br>
 "Sorting by {0} from {1}." where {0} = "VC Time"; {1} = "Local Leaderboards"<br>--> "Sorting by VC Time from Local Leaderboards"
 </pre>
-A mismatched key only counts if the translation file does not have the dynamic variable indication. example below:
+A mismatched key only counts if the translation file does not have the dynamic variable indication, or does not match the count of dynamic variables. example below:
 <pre>
 //default.json
 content: "Hello {0}"
 
 //ja.json ❌
 content: "みなさん、こんにちは" // no dynamic variable
+content: "みなさん{0}と{1}" // extra dynamic variable
 
 //ja.json ✅
-content: "こんにちは {0}さん" // has dynamic variable
+content: "こんにちは{0}さん" // has dynamic variable
 </pre>
