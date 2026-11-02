@@ -1,30 +1,31 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { ms_convert, getLocaleTranslation } = require('../../static/utils');
+const { ms_convert, getLocaleTranslation } = require('#jikan/utils.js');
+const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
 const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.mystats.description')),
-    async run(discord, client, interaction) {
-        const time = await client.database.getAllUserTime(interaction.user.id, interaction.guild.id);
+    async run(client, interaction) {
+        const time = await JikanMySQLDatabase.getAllUserTime(interaction.user.id, interaction.guildId);
         const time_now = Date.now();
         const locale = interaction.locale;
 
         const time_embed = new discord.EmbedBuilder()
-            .setTitle(getLocaleTranslation(locale, 'commands.public.mystats.embed.title', interaction.user.username))
+        .setTitle(getLocaleTranslation(locale, 'commands.public.mystats.embed.title', interaction.user.username))
         .addFields(
             {
                 name: getLocaleTranslation(locale, 'commands.public.mystats.embed.global_field_name'),
-                value: ms_convert(time.global_time)
+                value: ms_convert(time.global_time, interaction.jikan_server_locale)
             },
             {
                 name: interaction.guild.name,
-                value: ms_convert(time.local_time)
+                value: ms_convert(time.local_time, interaction.jikan_server_locale)
             },
             {
                 name: getLocaleTranslation(locale, 'commands.public.mystats.embed.realtime_field_name'),
-                value: !time?.temp_time ? getLocaleTranslation(locale, 'commands.public.mystats.embed.not_in_vc') : ms_convert(time_now - time.temp_time)
+                value: !time?.temp_time ? getLocaleTranslation(locale, 'commands.public.mystats.embed.not_in_vc') : ms_convert(time_now - time.temp_time, interaction.jikan_server_locale)
             }
         )
 

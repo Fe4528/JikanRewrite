@@ -1,0 +1,1 @@
+node ./locale_check.js

@@ -1,9 +1,10 @@
-const { JikanDBError, ms_convert, consoleColor } = require("../static/utils.js")
-const TempTime = require("../static/temptime.js")
+const { JikanDBError, ms_convert, consoleColor } = require('#jikan/utils.js')
+const JikanTempTime = require("#jikan/jikan_temptime.js")
+const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
+
 //client has the database object
 
 module.exports.changeDetected = async (os, ns, client) => {
-    const jdb = client.database;
     const guild = ns.guild;
     const member = ns.member;
 
@@ -18,11 +19,18 @@ module.exports.changeDetected = async (os, ns, client) => {
     }
 
     try {
-        const server_temp = TempTime.getServer(guild.id);
+        const server_temp = JikanTempTime.getServer(guild.id);
         if (ns.channel && !os.channel) {
             const date = Date;
-
             const user_temp_time = server_temp.get(member.id);
+
+            if (!await JikanMySQLDatabase.userExists(member.id)) {
+                console.log(consoleColor(`User ${member.id} is not yet saved in global index record (in JikanUser, not global lb); creating...`, "yellow"));
+                await JikanMySQLDatabase.addUser({
+                    user_id: member.id,
+                    user_name: member.user.username
+                });
+            }
 
             //console.log(temp_time);
             if (!user_temp_time) {
@@ -30,8 +38,8 @@ module.exports.changeDetected = async (os, ns, client) => {
                 //
                 // || local_time.temp_time == 0 || local_time.length < 1
 
-                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: date.now(), user_name: member.user.username, mode: "SET" })
-                TempTime.addUserInServerTemp({
+                //await JikanMySQLDatabase.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: date.now(), user_name: member.user.username, mode: "SET" })
+                JikanTempTime.addUserInServerTemp({
                     guild_id: guild.id,
                     user_id: member.id,
                     user_name: member.user.username,
@@ -47,8 +55,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 
                 console.log(consoleColor(`User ${member.id} already has record in JikanTempTime<${guild.id}, object {}>, removing entry`, "red"));
                 
-                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
-                TempTime.removeUserInServerTemp({
+                JikanTempTime.removeUserInServerTemp({
                     guild_id: guild.id,
                     user_id: member.id
                 });
@@ -73,16 +80,6 @@ module.exports.changeDetected = async (os, ns, client) => {
             // left vc
             const date = Date;
             const date_now = date.now();
-
-            if (!await jdb.userExists(member.id)) {
-                console.log(consoleColor(`User ${member.id} is not yet saved in global index record (in JikanUser, not global lb); creating...`, "yellow"));
-                await jdb.addUser({
-                    user_id: member.id,
-                    user_name: member.user.username
-                });
-            }
-
-            //const old_time = await jdb.getUserTimeFrom(member.id, guild.id, "REALTIME");
             const old_time = server_temp.get(member.id);
 
             if (!old_time) {
@@ -106,8 +103,7 @@ module.exports.changeDetected = async (os, ns, client) => {
 
                 console.log(consoleColor(`User ${member.id} time spent in VC is same as today`, "red"));
 
-                //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
-                TempTime.removeUserInServerTemp({
+                JikanTempTime.removeUserInServerTemp({
                     guild_id: guild.id,
                     user_id: member.id
                 });
@@ -117,21 +113,17 @@ module.exports.changeDetected = async (os, ns, client) => {
                 return;
             }
 
-            // update local
-            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "LOCAL", current_time: time_spent_after_leaving, user_name: member.user.username, mode: "UPDATE" });
-            console.log("User %s LOCAL time has been updated", member.id);
-
             // update global
-            await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "GLOBAL", current_time: time_spent_after_leaving, user_name: member.user.username, mode: "UPDATE" });
+            await JikanMySQLDatabase.updateUserTime({ 
+                guild_id: guild.id, 
+                id: member.id, 
+                current_time: time_spent_after_leaving, 
+                user_name: member.user.username, 
+            });
             console.log("User %s GLOBAL time has been updated", member.id);
 
-            // reset temp data
-            // makes sure that you set it to 0
-            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", current_time: 0, user_name: member.user.username, mode: "SET" });
-            // old
-
-            //await jdb.updateUserTime({ guild_id: guild.id, id: member.id, type: "REALTIME", mode: "DELETE" });
-            TempTime.removeUserInServerTemp({
+            // remove temp data
+            JikanTempTime.removeUserInServerTemp({
                 guild_id: guild.id,
                 user_id: member.id
             });
