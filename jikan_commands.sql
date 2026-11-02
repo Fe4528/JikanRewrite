@@ -18,7 +18,7 @@ create table JikanGuildSettings (
 	log_channel varchar(30), 
 	webhook_url text,
 	ignored_role varchar(30),
-    server_locale varchar(5)
+    server_locale varchar(5) default 'en-US'
 );
 
 create table JikanGuildLeaderboard (

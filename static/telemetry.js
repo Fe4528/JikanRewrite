@@ -6,6 +6,7 @@ const helper_methods = /** @type {const} */([
     "get_all_user_time",
     "get_ban_list",
     "get_both_user_time",
+    "get_guild_settings",
     "get_leaderboard_from",
     "get_leaderboard_scope",
     "get_server_lang",

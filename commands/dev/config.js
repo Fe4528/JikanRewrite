@@ -30,12 +30,17 @@ module.exports = {
             .setStyle(ButtonStyle.Secondary)
             .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
 
-            const button_row = new ActionRowBuilder().addComponents(lb_name_config, log_channel_config, ignored_role_config);
+            const botlang_config = new ButtonBuilder()
+            .setCustomId("JIKAN_BTN_LOCALE_CONFIG")
+            .setStyle(ButtonStyle.Secondary)
+            .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOCALE_CONFIG'))
+
+            const button_row = new ActionRowBuilder().addComponents(lb_name_config, log_channel_config, ignored_role_config, botlang_config);
 
             interaction.reply({
                 embeds: [embed],
                 components: [button_row],
-                //flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.Ephemeral]
             })
         } catch (e) {
             interaction.reply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);

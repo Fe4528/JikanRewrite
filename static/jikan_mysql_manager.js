@@ -3,25 +3,23 @@ const { JikanDBError, consoleColor, ms_convert } = require('#jikan/utils.js');
 const telemetry = require("#jikan/telemetry.js");
 
 class JikanMySQLDatabase {
-    static #pool;
+    static #pool = mysql.createPool({
+        host: process.env.MYSQL_ENDPOINT,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DBNAME,
+        port: process.env.MYSQL_PORT,
+        waitForConnections: true,
+        connectionLimit: 4,
+        queueLimit: 0
+    });
 
-    static {
-        console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
-        
-        (async () => {
-            #pool = await mysql.createPool({
-                host: process.env.MYSQL_ENDPOINT,
-                user: process.env.MYSQL_USER,
-                password: process.env.MYSQL_PASSWORD,
-                database: process.env.MYSQL_DBNAME,
-                port: process.env.MYSQL_PORT,
-                waitForConnections: true,
-                connectionLimit: 4,
-                queueLimit: 0
-            });
+    static async ping() {
+        const start = Date.now();
 
-            console.log(consoleColor("Success", 'green'));
-        })
+        await this.#pool.execute('select 1');
+
+        return Date.now() - start;
     }
 
     /**
@@ -142,13 +140,33 @@ class JikanMySQLDatabase {
             query_params.push(params.server_id);
         }
         const [rows] = await this.#pool.query(query, query_params);
+
         telemetry.log('get_both_user_time', '_calls');
         return rows[0]; 
-    } catch(e) {
-        telemetry.log('get_both_user_time', '_errors');
-        throw e;
+
+        } catch(e) {
+            telemetry.log('get_both_user_time', '_errors');
+            throw e;
+        }
     }
-}
+
+    static async getGuildSettings(id) {
+        try {
+            const [rows] = await this.#pool.query(
+                `select server_locale, leaderboard_name, log_channel, ignored_role 
+                from JikanGuildSettings where server_id = ?`,
+                [id]
+            );
+
+            telemetry.log('get_guild_settings', '_calls');
+
+            return rows[0] ?? null;
+
+        } catch(e) {
+            telemetry.log('get_guild_settings', '_errors');
+            throw new JikanDBError(e.message);
+        }
+    }
 
     /**
      * Get leaderboard

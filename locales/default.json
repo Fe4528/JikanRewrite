@@ -1,5 +1,10 @@
 {
-	"translator": "Default (@fe4528)",
+	"metadata": {
+		"_note": "Fill in the fields when trnaslating.",
+		"translator": "@fe4528",
+		"language": "English (Default)",
+		"locale": "en-US"
+	},
 	"commands": {
 		"dev": {
 			"devtest": {
@@ -127,6 +132,7 @@
 	"buttons": {
 		"config": {
 			"JIKAN_BTN_LB_NAME_CONFIG": "Leaderboard Name",
+			"JIKAN_BTN_LOCALE_CONFIG": "Language",
 			"JIKAN_BTN_LOG_CHANNEL_CONFIG": "Log Channel",
 			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "Ignored Role"
 		}

@@ -72,30 +72,54 @@ const client = new discord.Client({
     intents: ['Guilds', "GuildVoiceStates"]
 });
 
+const loading = new Map();
+
+async function ensure_guild_cached(guild_id) {
+    if (JikanCache.hasGuild(guild_id)) return true;
+
+    let pending = loading.get(guild_id);
+
+    if (!pending) {
+        pending = (async () => {
+            let row = await JikanMySQLDatabase.getGuildSettings(guild_id);
+
+            if (!row) {
+                await JikanMySQLDatabase.createServerData(guild_id);
+                row = {};
+            }
+
+            JikanCache.setGuildSettings(guild_id, {
+                locale: row.server_locale || 'en-US',
+                lb_name: row.leaderboard_name ?? null,
+                log_channel: row.log_channel ?? null,
+                ignored_role: row.ignored_role ?? null
+            });
+        })().finally(() => loading.delete(guild_id));
+
+        loading.set(guild_id, pending);
+    }
+
+    try {
+        await pending;
+        return true;
+    } catch (e) {
+        console.log('settings lookup failed:', e.stack ?? e);
+        return false;
+    }
+}
+
 client.on('interactionCreate', async interaction => {
     const is_dev = dev_commands_map.has(interaction.commandName);
-    let lang_cache = JikanCache.getServerLangCache(interaction.guildId);
 
     if (JikanCache.isBanIDExist(interaction.user.id) || JikanCache.isBanIDExist(interaction.guildId)) {
         await interaction.reply(getLocaleTranslation(interaction.locale, 'system.banned_message'));
         return;
     }
 
-    if (!lang_cache) {
-        try {
-            const lang_db = await JikanMySQLDatabase.getServerLocale(interaction.guildId);
-            const locale = lang_db || 'en-US';
+    if (interaction.guildId) await ensure_guild_cached(interaction.guildId);
 
-            JikanCache.addOrSetServerLangCache(interaction.guildId, locale);
-            interaction.jikan_server_locale = locale;
-        } catch (e) {
-            console.log("locale lookup failed:", e);
-
-            interaction.jikan_server_locale = 'en-US';
-        }
-    } else {
-        interaction.jikan_server_locale = lang_cache;
-    }
+    const locale = JikanCache.getServerLangCache(interaction.guildId) ?? 'en-US';
+    interaction.jikan_server_locale = locale;
 
     if (interaction.isChatInputCommand()) {
         let command;
@@ -113,7 +137,7 @@ client.on('interactionCreate', async interaction => {
             const command_permissions = command.exports?.permissions;
 
             if (command_permissions && !interaction.memberPermissions.has(command_permissions)) {
-                interaction.reply(getLocaleTranslation(lang_cache, 'system.no_permissions'));
+                interaction.reply(getLocaleTranslation(locale, 'system.no_permissions'));
 
                 return;
             }
@@ -121,7 +145,7 @@ client.on('interactionCreate', async interaction => {
             await command.exports.run(client, interaction);
         } catch (e) {
             interaction.reply({
-                content: `${getLocaleTranslation(interaction.locale, 'system.command_error')}\n${code_block(e.stack)}`,
+                content: `${getLocaleTranslation(locale, 'system.command_error')}\n${code_block(e.stack)}`,
                 flags: [discord.MessageFlags.Ephemeral]
             })        
         }
@@ -134,7 +158,7 @@ client.on('interactionCreate', async interaction => {
 
             if (!button) {
                 interaction.reply({
-                    content: `${getLocaleTranslation(lang_cache, 'system.button_not_implemented')} :rage::rage::rage:`,
+                    content: `${getLocaleTranslation(locale, 'system.button_not_implemented')} :rage::rage::rage:`,
                     flags: [discord.MessageFlags.Ephemeral]
                 });
 
@@ -144,7 +168,7 @@ client.on('interactionCreate', async interaction => {
             const button_permissions = button.exports?.permissions;
 
             if (button_permissions && !interaction.memberPermissions.has(button_permissions)) {
-                interaction.reply(getLocaleTranslation(lang_cache, 'system.no_permissions'));
+                interaction.reply(getLocaleTranslation(locale, 'system.no_permissions'));
 
                 return;
             }
@@ -152,7 +176,7 @@ client.on('interactionCreate', async interaction => {
             await button.exports.run(client, interaction);
         } catch (e) {
             interaction.reply({
-                content: `${getLocaleTranslation(interaction.locale, 'system.generic_error')}\n${code_block(e.stack)}`,
+                content: `${getLocaleTranslation(locale, 'system.generic_error')}\n${code_block(e.stack)}`,
                 flags: [discord.MessageFlags.Ephemeral]
             })
         }
@@ -164,7 +188,7 @@ client.on('interactionCreate', async interaction => {
             
             if (!modal) {
                 interaction.reply({
-                    content: `${getLocaleTranslation(lang_cache, 'system.button_not_implemented')} :rage::rage::rage:`,
+                    content: `${getLocaleTranslation(locale, 'system.button_not_implemented')} :rage::rage::rage:`,
                     flags: [discord.MessageFlags.Ephemeral]
                 });
 
@@ -174,7 +198,7 @@ client.on('interactionCreate', async interaction => {
             const modal_permissions = modal.exports?.permissions;
 
             if (modal_permissions && !interaction.memberPermissions.has(modal_permissions)) {
-                interaction.reply(getLocaleTranslation(lang_cache, 'system.no_permissions'));
+                interaction.reply(getLocaleTranslation(locale, 'system.no_permissions'));
 
                 return;
             }
@@ -182,7 +206,7 @@ client.on('interactionCreate', async interaction => {
             await modal.exports.run(client, interaction);
         } catch(e) {
             interaction.reply({
-                content: `${getLocaleTranslation(interaction.locale, 'system.generic_error')}\n${code_block(e.stack)}`,
+                content: `${getLocaleTranslation(locale, 'system.generic_error')}\n${code_block(e.stack)}`,
                 flags: [discord.MessageFlags.Ephemeral]
             })
         }
@@ -218,6 +242,7 @@ client.on('voiceStateUpdate', async (os, ns) => {
     }
 
     if (os.channel !== ns.channel) {
+        await ensure_guild_cached(ns.guild.id);
         await voice_update_module.changeDetected(os, ns, client)
     }
 })
@@ -228,22 +253,29 @@ client.on('guildCreate', async guild => {
 
 client.on('guildDelete', async guild => {
     JikanTempTime.removeServer(guild.id);
+    JikanCache.removeGuildConfigCache(guild.id)
 })
 
 process.on('uncaughtException', (a) => {
     console.log(a);
-}) 
+}); 
 
-client.login(process.env.BOT_TOKEN).then(async () => {
+(async () => {
     try {
-        const fetched_banlist = await JikanMySQLDatabase.getBanList();
-
-        fetched_banlist.forEach((e) => {
-            JikanCache.addBanID(e.id);
+        console.log(consoleColor("Trying to connect to MySQL server", "yellow"));
+    
+        const ms = await JikanMySQLDatabase.ping();
+    
+        console.log(consoleColor(`Success! Latency is ${ms}ms`, 'green'));
+    
+        const banlist = await JikanMySQLDatabase.getBanList();
+        banlist.forEach(e => JikanCache.addBanID(e.id));
+    
+        client.login(process.env.BOT_TOKEN).then(async () => {
+            console.log("Online");
         })
     } catch (e) {
-        throw new Error(e.message);
-    } finally {
-        console.log("Online")
+        console.log(consoleColor(`Startup failed: ${e.code ?? e.message}`, 'red'));
+        process.exit(1);
     }
-})
+})();
