@@ -144,10 +144,14 @@ client.on('interactionCreate', async interaction => {
 
             await command.exports.run(client, interaction);
         } catch (e) {
-            interaction.reply({
-                content: `${getLocaleTranslation(locale, 'system.command_error')}\n${code_block(e.stack)}`,
-                flags: [discord.MessageFlags.Ephemeral]
-            })        
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({
+                    content: `${getLocaleTranslation(locale, 'system.command_error')}\n${code_block(e.stack)}`,
+                    flags: [discord.MessageFlags.Ephemeral]
+                });
+            } else {
+                console.log(e.stack);
+            }
         }
     }
 
@@ -175,10 +179,14 @@ client.on('interactionCreate', async interaction => {
 
             await button.exports.run(client, interaction);
         } catch (e) {
-            interaction.reply({
-                content: `${getLocaleTranslation(locale, 'system.generic_error')}\n${code_block(e.stack)}`,
-                flags: [discord.MessageFlags.Ephemeral]
-            })
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({
+                    content: `${getLocaleTranslation(locale, 'system.command_error')}\n${code_block(e.stack)}`,
+                    flags: [discord.MessageFlags.Ephemeral]
+                });
+            } else {
+                console.log(e.stack);
+            }
         }
     }
 
@@ -205,10 +213,14 @@ client.on('interactionCreate', async interaction => {
 
             await modal.exports.run(client, interaction);
         } catch(e) {
-            interaction.reply({
-                content: `${getLocaleTranslation(locale, 'system.generic_error')}\n${code_block(e.stack)}`,
-                flags: [discord.MessageFlags.Ephemeral]
-            })
+            if (!interaction.replied && !interaction.deferred) {
+                interaction.reply({
+                    content: `${getLocaleTranslation(locale, 'system.command_error')}\n${code_block(e.stack)}`,
+                    flags: [discord.MessageFlags.Ephemeral]
+                });
+            } else {
+                console.log(e.stack);
+            }
         }
     }
 })

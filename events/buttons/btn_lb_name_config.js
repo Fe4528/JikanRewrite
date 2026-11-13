@@ -1,4 +1,4 @@
-const { TextInputBuilder, ModalBuilder, LabelBuilder, TextInputStyle, PermissionsBitField } = require('discord.js')
+const { TextInputBuilder, ModalBuilder, LabelBuilder, TextInputStyle, PermissionsBitField, TextDisplayBuilder } = require('discord.js')
 const { getLocaleTranslation } = require('#jikan/utils.js');
 const JikanCache = require("#jikan/jikan_cache.js")
 
@@ -18,12 +18,16 @@ module.exports = {
         .setMinLength(0)
         .setRequired(false);
 
-        const label = new LabelBuilder()
+        const label1 = new LabelBuilder()
         .setLabel(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LB_NAME_CONFIG.label_info'))
         .setDescription(getLocaleTranslation(interaction.jikan_server_locale, 'common.leave_blank_reset'))
         .setTextInputComponent(lb_name_input);
 
-        modal.addLabelComponents(label);
+        const label2 = new TextDisplayBuilder()
+        .setContent(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LB_NAME_CONFIG.disclaimer'));
+
+        modal.addLabelComponents(label1);
+        modal.addTextDisplayComponents(label2);
 
         await interaction.showModal(modal);
     }

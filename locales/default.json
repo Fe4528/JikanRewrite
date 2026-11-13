@@ -85,7 +85,14 @@
 				"embeds": {
 					"main": {
 						"title": "Configuration",
-						"description": "Select a configuration that you want to change."
+						"description": "Select a configuration that you want to change.",
+						"note": "Below are the server's current configs."
+					},
+					"fields": {
+						"current_lbname": "Current Leadeboard Name",
+						"current_logchannel": "Current Log Channel",
+						"current_ignoredrole": "Current Ignored Role",
+						"current_language": "Current Language"
 					}
 				}
 
@@ -134,7 +141,8 @@
 			"JIKAN_BTN_LB_NAME_CONFIG": "Leaderboard Name",
 			"JIKAN_BTN_LOCALE_CONFIG": "Language",
 			"JIKAN_BTN_LOG_CHANNEL_CONFIG": "Log Channel",
-			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "Ignored Role"
+			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "Ignored Role",
+			"JIKAN_BTN_RESETCFGVALUES": "Reset ALL"
 		}
 	},
 	"modals": {
@@ -142,7 +150,12 @@
 			"JIKAN_MODAL_LB_NAME_CONFIG": {
 				"title": "Leaderboard Name",
 				"label_info": "Enter a new leaderboard name for this server.",
-				"input_placeholder": "Max 40 characters."
+				"disclaimer": "Leaderboard naming is unmoderated. Be mindful of what you enter.",
+				"input_placeholder": "Max 40 characters.",
+				"responses": {
+					"success": "Successfully set the leaderboard name to: {0}",
+					"reset": "Leaderboard Name has been reset."
+				}
 			},
 			"JIKAN_MODAL_LOG_CHANNEL_CONFIG": {
 				"title": "Log Channel",
@@ -178,7 +191,9 @@
 		"realtime": "Realtime",
 		"global": "Global",
 		"local": "Local",
+
 		"error":  "Error",
+		"none": "None",
 
 		"leave_blank_reset": "Leave blank to reset.",
 		"config_reset": "Configuration has been reset.",
@@ -200,6 +215,7 @@
 		"day": "d",
 		"hour": "h",
 		"minute": "m",
-		"second": "s"
+		"second": "s",
+		"year": "y"
 	}
 }

@@ -8,10 +8,6 @@ module.exports = {
     .setDescription(getLocaleTranslation('en-US', 'commands.dev.devtest.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.dev.devtest.description')),
     async run(client, interaction) {
-        try {
-            // code goes here
-        } catch (e) {
-            interaction.reply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
-        }
+        
     }
 }

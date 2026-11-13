@@ -229,6 +229,39 @@ class JikanMySQLDatabase {
     }
 
     /**
+     * Sets a single guild configuration setting
+     * @param {string} id - Server ID.
+     * @param {'server_locale'|'leaderboard_name'|'log_channel'|'ignored_role'} setting - Setting to update
+     * @param {string|null} value - New value for the setting
+     */
+    static async setGuildSetting(id, setting, value) {
+        const allowedSettings = [
+            'server_locale',
+            'leaderboard_name',
+            'log_channel',
+            'ignored_role'
+        ];
+
+        if (!allowedSettings.includes(setting)) {
+            throw new JikanDBError(`Invalid guild setting: ${setting}`);
+        }
+
+        try {
+            const [result] = await this.#pool.query(
+                `insert into JikanGuildSettings (server_id, ${setting})
+                values (?, ?)
+                on duplicate key update ${setting} = values(${setting})`,
+                [id, value]
+            );
+
+            telemetry.log('set_guild_setting', '_calls');
+        } catch(e) {
+            telemetry.log('set_guild_setting', '_errors');
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    /**
      * Update user VC time
      * @param {object} params
      * @param {string} params.current_time The user's accumulated time

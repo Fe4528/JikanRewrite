@@ -12,6 +12,7 @@ const helper_methods = /** @type {const} */([
     "get_server_lang",
     "get_user",
     "get_user_time_from",
+    "set_guild_setting",
     "update_user_time",
     "user_exists",
 ]);

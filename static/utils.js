@@ -1,4 +1,5 @@
-const { WebhookClient } = require("discord.js");
+const { WebhookClient, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const JikanCache = require("#jikan/jikan_cache.js")
 const path = require("path");
 const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
@@ -120,7 +121,7 @@ module.exports.ms_convert = (ms, locale = "en-US") => {
     const final_seconds = parseFloat(remaining_seconds); 
 
     const duration = [];
-    if (years > 0) duration.push(`${years}y`);
+    if (years > 0) duration.push(`${years}${this.getLocaleTranslation(locale, 'time.year')}`);
     if (remaining_days > 0) duration.push(`${remaining_days}${this.getLocaleTranslation(locale, 'time.day')}`);
     if (remaining_hours > 0) duration.push(`${remaining_hours}${this.getLocaleTranslation(locale, 'time.hour')}`);
     if (remaining_minutes > 0) duration.push(`${remaining_minutes}${this.getLocaleTranslation(locale, 'time.minute')}`);
@@ -168,4 +169,65 @@ module.exports.localizationTemplate = (key) => ({
  */
 module.exports.consoleColor = (string, color = 'white') => {
     return `${console_colors[color]}${string}${console_colors.default}`;
+}
+
+module.exports.buildConfigDashboard = (interaction) => {
+    const embed = new EmbedBuilder()
+    .setTitle(this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.title'))
+    .setDescription(`
+        ${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.description')}
+        ${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.note')}
+    `)
+    .addFields(
+        {
+            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_language'),
+            value: JikanCache.getServerLangCache(interaction.guildId)
+        },
+        {
+            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_lbname'),
+            value: JikanCache.getServerLBNameCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+        },
+        {
+            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_logchannel'),
+            value: JikanCache.getServerLogChannelCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+        },
+        {
+            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_ignoredrole'),
+            value: JikanCache.getServerIgnoredRoleCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+        }
+    )
+
+    const lb_name_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LB_NAME_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
+
+    const log_channel_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LOG_CHANNEL_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
+
+    const ignored_role_config = new ButtonBuilder()
+    .setCustomId('JIKAN_BTN_IGNORED_ROLE_CONFIG')
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
+
+    const botlang_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LOCALE_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOCALE_CONFIG'));
+
+    const resetButton = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_RESETCFGVALUES")
+    .setStyle(ButtonStyle.Danger)
+    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_RESETCFGVALUES'));
+    
+    const button_row1 = new ActionRowBuilder().addComponents(botlang_config, lb_name_config, log_channel_config);
+    const button_row2 = new ActionRowBuilder().addComponents(ignored_role_config, resetButton);
+
+    return {
+        embed: embed,
+        row1: button_row1,
+        row2: button_row2
+    }
 }

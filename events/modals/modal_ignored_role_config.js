@@ -7,11 +7,7 @@ module.exports = {
     custom_id: "JIKAN_MODAL_IGNORED_ROLE_CONFIG",
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
-        try {
-            await interaction.deferReply();
-            interaction.editReply('test');
-        } catch(e) {
-            interaction.editReply(`${getLocaleTranslation(interaction.jikan_server_locale, 'system.command_error')}\n${code_block(e.message)}`);
-        }
+        await interaction.deferReply();
+        interaction.editReply('test');
     }
 }
