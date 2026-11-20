@@ -50,7 +50,7 @@
 							"name": "レイテンシ"
 						},
 						"hardware": {
-							"name": "役に立たない情報",
+							"name": "おまけ情報",
 							"cpu_value": "CPU: {0}",
 							"cpu_usage_value": "CPU使用率: {0}",
 							"os_value": "OS: {0}"
@@ -85,8 +85,16 @@
 				"embeds": {
 					"main": {
 						"title": "設定",
-						"description": "変更したい設定を選択してください。"
-					}
+						"description": "変更したい設定を選択してください。",
+						"note": "以下はサーバーの現在の設定です。"
+					},
+					"fields": {
+						"current_lbname": "現在のランキング名",
+						"current_logchannel": "現在のログチャンネル",
+						"current_ignoredrole": "現在の除外ロール",
+						"current_language": "現在の言語"
+					},
+					"translated_by": "翻訳者: {0}"
 				}
 			},
 			"leaderboards": {
@@ -110,6 +118,7 @@
 					"no_users_reason_note": "リアルタイムランキングが選択されている場合は無視してください。すぐにここに表示されます",
 					"your_rank": "あなたの順位"
 				},
+				"footer_user_count": "{0}人",
 				"myrank_not_found": "データなし"
 			},
 			"stats": {
@@ -131,8 +140,10 @@
 	"buttons": {
 		"config": {
 			"JIKAN_BTN_LB_NAME_CONFIG": "ランキング名",
+			"JIKAN_BTN_LOCALE_CONFIG": "言語",
 			"JIKAN_BTN_LOG_CHANNEL_CONFIG": "ログチャンネル",
-			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "除外ロール"
+			"JIKAN_BTN_IGNORED_ROLE_CONFIG": "除外ロール",
+			"JIKAN_BTN_RESETCFGVALUES": "すべてリセット"
 		}
 	},
 	"modals": {
@@ -140,14 +151,38 @@
 			"JIKAN_MODAL_LB_NAME_CONFIG": {
 				"title": "ランキング名",
 				"label_info": "このサーバーの新しいランキング名を入力してください。",
-				"input_placeholder": "最大40文字"
+				"disclaimer": "ランキング名の入力内容はモデレーションされません。不適切な表現にご注意ください。",
+				"input_placeholder": "最大40文字",
+				"responses": {
+					"success": "ランキング名を「{0}」に設定しました。",
+					"reset": "ランキング名をリセットしました。"
+				}
 			},
 			"JIKAN_MODAL_LOG_CHANNEL_CONFIG": {
 				"title": "ログチャンネル",
 				"label_info": "このサーバーのログチャンネルを設定します。",
 				"input_placeholder": "選択できるチャンネルは1つだけです。",
 				"responses": {
-					"success": "ログチャンネルを{0}に設定しました"
+					"success": "ログチャンネルを{0}に設定しました。",
+					"reset": "ログチャンネルをリセットしました。"
+				}
+			},
+			"JIKAN_MODAL_IGNORED_ROLE_CONFIG": {
+				"title": "除外ロール",
+				"label_info": "このサーバーの除外ロールを設定します。",
+				"input_placeholder": "選択できるロールは1つだけです。",
+				"responses": {
+					"success": "除外ロールを{0}に設定しました。",
+					"reset": "除外ロールをリセットしました。"
+				}
+			},
+			"JIKAN_MODAL_LOCALE_CONFIG": {
+				"title": "言語",
+				"label_info": "ボットの言語を変更",
+				"input_placeholder": "言語を選択",
+				"responses": {
+					"success": "言語を{0}に設定しました。",
+					"reset": "言語をデフォルト（英語）にリセットしました。"
 				}
 			}
 		}
@@ -168,7 +203,10 @@
 		"realtime": "リアルタイム",
 		"global": "グローバル",
 		"local": "ローカル",
+
 		"error": "エラー",
+		"database_error": "データベースエラー。",
+		"none": "なし",
 
 		"leave_blank_reset": "リセットするには空白のままにしてください。",
 		"config_reset": "設定がリセットされました。",
@@ -190,6 +228,7 @@
 		"day": "日",
 		"hour": "時間",
 		"minute": "分",
-		"second": "秒"
+		"second": "秒",
+		"year": "年"
 	}
 }

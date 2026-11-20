@@ -157,6 +157,9 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton()) {
         try {
+            if (!interaction.customId.startsWith('JIKAN_BTN_')) return;
+            // for stop clashing with pagination.djs buttons
+
             const button = require.cache[buttons_map.get(interaction.customId)];
             
 

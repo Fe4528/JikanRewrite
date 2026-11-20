@@ -1,30 +1,48 @@
 const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
-const JikanCache = require('#jikan/jikan_cache.js')
-const { code_block, getLocaleTranslation } = require('#jikan/utils.js')
-const { PermissionsBitField, escapeMarkdown, Guild, ChannelType, channelMention } = require('discord.js');
+const JikanCache = require('#jikan/jikan_cache.js');
+const { getLocaleTranslation, buildConfigDashboard } = require('#jikan/utils.js');
+const { PermissionsBitField, MessageFlags, channelMention } = require('discord.js');
 
 module.exports = {
     custom_id: "JIKAN_MODAL_LOG_CHANNEL_CONFIG",
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
-        await interaction.deferReply();
+        await interaction.deferUpdate();
 
-        let new_log_channel = interaction.fields.getSelectedChannels("JIKAN_MODAL_CHANNEL_SELECTOR");
+        const selectedChannels = interaction.fields.getSelectedChannels("JIKAN_MODAL_CHANNEL_SELECTOR");
+        const selectedChannel = selectedChannels?.first() ?? null;
+        const channelId = selectedChannel?.id ?? null;
 
-        if (new_log_channel) {
-            new_log_channel = new_log_channel.first();
-            const channel_id = new_log_channel.id
-
-            JikanCache.addOrSetLogChannelCache(interaction.guildId, channel_id);
-            interaction.editReply(getLocaleTranslation(interaction.jikan_server_locale, 'modals.config.JIKAN_MODAL_LOG_CHANNEL_CONFIG.responses.success', channelMention(channel_id)));
+        if (channelId) {
+            JikanCache.addOrSetLogChannelCache(interaction.guildId, channelId);
+            await JikanMySQLDatabase.setGuildSetting(interaction.guildId, "log_channel", channelId);
         } else {
             if (!JikanCache.getServerLogChannelCache(interaction.guildId)) {
-                interaction.editReply(getLocaleTranslation(interaction.jikan_server_locale, 'common.config_cache_miss'));
+                await interaction.followUp({
+                    content: getLocaleTranslation(interaction.jikan_server_locale, 'common.config_cache_miss'),
+                    flags: [MessageFlags.Ephemeral]
+                });
                 return;
             }
 
             JikanCache.removeServerLogChannelCache(interaction.guildId);
-            interaction.editReply(getLocaleTranslation(interaction.jikan_server_locale, 'common.config_reset'));
+            await JikanMySQLDatabase.setGuildSetting(interaction.guildId, "log_channel", null);
         }
+
+        const dashboard = buildConfigDashboard(interaction);
+
+        await interaction.editReply({
+            embeds: [dashboard.embed],
+            components: [dashboard.row1, dashboard.row2]
+        });
+
+        const responseText = channelId
+            ? getLocaleTranslation(interaction.jikan_server_locale, `modals.config.${this.custom_id}.responses.success`, channelMention(channelId))
+            : getLocaleTranslation(interaction.jikan_server_locale, 'common.config_reset');
+
+        await interaction.followUp({
+            content: responseText,
+            flags: [MessageFlags.Ephemeral]
+        });
     }
-}
+};

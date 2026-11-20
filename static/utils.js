@@ -1,4 +1,4 @@
-const { WebhookClient, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { WebhookClient, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, channelMention, roleMention } = require("discord.js");
 const JikanCache = require("#jikan/jikan_cache.js")
 const path = require("path");
 const webhook = new WebhookClient({
@@ -43,6 +43,11 @@ const console_colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   white: '\x1b[37m',
+}
+
+const lang_icons = {
+    "en-US": ":flag_us:",
+    "ja": ":flag_jp:"
 }
 
 /**
@@ -181,7 +186,7 @@ module.exports.buildConfigDashboard = (interaction) => {
     .addFields(
         {
             name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_language'),
-            value: JikanCache.getServerLangCache(interaction.guildId)
+            value: `${lang_icons[JikanCache.getServerLangCache(interaction.guildId)]} (${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.translated_by', this.getLocaleTranslation(interaction.jikan_server_locale, 'metadata.translator'))})`
         },
         {
             name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_lbname'),
@@ -189,11 +194,11 @@ module.exports.buildConfigDashboard = (interaction) => {
         },
         {
             name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_logchannel'),
-            value: JikanCache.getServerLogChannelCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+            value: channelMention(JikanCache.getServerLogChannelCache(interaction.guildId)) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
         },
         {
             name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_ignoredrole'),
-            value: JikanCache.getServerIgnoredRoleCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+            value: roleMention(JikanCache.getServerIgnoredRoleCache(interaction.guildId)) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
         }
     )
 

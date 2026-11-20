@@ -218,7 +218,7 @@ module.exports = {
             .setTitle(embed_title)
             .setDescriptions(lb_entry_chunk)
             .setColor('#ffffff')
-            .setFooter({ text: `{pageNumber}/{totalPages} | ${Date.now() - time_took}ms ${(lb ? lb.length : 0)} user(s) | ${
+            .setFooter({ text: `{pageNumber}/{totalPages} | ${Date.now() - time_took}ms ${getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.footer_user_count', lb ? lb.length : 0)} | ${
                 getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.embeds.sort_footer',
                 getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_value}`),
                 getLocaleTranslation(interaction.jikan_server_locale, `common.${selected_order}`))
