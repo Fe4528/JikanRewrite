@@ -2,17 +2,20 @@ const { ms_convert } = require("#jikan/utils.js");
 
 const helper_methods = /** @type {const} */([
     "add_user",
+    "check_if_user_is_hidden",
     "create_server_data",
     "get_all_user_time",
     "get_ban_list",
     "get_both_user_time",
     "get_guild_settings",
+    "get_hidden_users",
     "get_leaderboard_from",
     "get_leaderboard_scope",
     "get_server_lang",
     "get_user",
     "get_user_time_from",
     "set_guild_setting",
+    "set_user_hidden_status",
     "update_user_time",
     "user_exists",
 ]);

@@ -11,21 +11,33 @@ function formatLeaderboardRow(user, ranking, selected_scope, selected_value, loc
         ? ms_convert(Date.now() - user.vc_time, locale)
         : ms_convert(user.vc_time, locale);
 
-    return `${ranking}. ${user.user_name}${selected_value == "user_id" ? `[${user.user_id}]` : ''} - ${display_time}`;
+    const display_name = user.is_hidden ? "Hidden User" : user.user_name;
+    const display_id = selected_value === "user_id" && !user.is_hidden
+        ? `[${user.user_id}]`
+        : '';
+
+    return `${ranking}. ${display_name}${display_id} - ${display_time}`;
 }
 
 function getMyRankingString(lb_map, interaction, selected_scope) {
     const mydata = lb_map.get(interaction.user.id);
+
     if (!mydata) {
-        return getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.leaderboards.myrank_not_found');
+        return getLocaleTranslation(
+            interaction.jikan_server_locale,
+            'commands.public.leaderboards.myrank_not_found'
+        );
     }
 
     const { rank, data } = mydata;
+
     const mytime = (selected_scope === "realtime" && data.vc_time !== 0)
         ? ms_convert(Date.now() - data.vc_time, interaction.jikan_server_locale)
         : ms_convert(data.vc_time, interaction.jikan_server_locale);
 
-    return `${rank}. ${interaction.user.username} - ${mytime}`;
+    const display_name = data.is_hidden ? "Hidden User" : interaction.user.username;
+
+    return `${rank}. ${display_name} - ${mytime}`;
 }
 
 module.exports = {
@@ -112,21 +124,27 @@ module.exports = {
         await interaction.deferReply();
 
         if (selected_scope !== "realtime") {
-            lb = await JikanMySQLDatabase.getLeaderboardFrom(
-                {
-                    type: selected_scope,
-                    guild_id: guild.id,
-                    value: selected_value,
-                    order: selected_order
-                }
-            );
+            lb = await JikanMySQLDatabase.getLeaderboardFrom({
+                type: selected_scope,
+                guild_id: guild.id,
+                value: selected_value,
+                order: selected_order
+            });
         } else {
-            // since temp data is stored in RAM (the JikanTempTime bullshit)
             lb = JikanTempTime.getSortedUsers(guild.id, {
                 value: selected_value,
                 order: selected_order
             });
         }
+
+        const hidden_users = await JikanMySQLDatabase.getHiddenUsers(
+            lb.map(user => user.user_id)
+        );
+
+        lb = lb.map(user => ({
+            ...user,
+            is_hidden: hidden_users.has(user.user_id)
+        }));
 
         //lb = lb.slice(0, 1)
 
@@ -209,9 +227,9 @@ module.exports = {
        if (selected_scope == 'global') {
             embed_title = getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.global');
        } else if (selected_scope == 'local') {
-            embed_title = `${!server_lb_name ? getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.local', interaction.guild.name) : server_lb_name}`;
+            embed_title = `${getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.local', server_lb_name ? server_lb_name : interaction.guild.name)}`;
        } else {
-            embed_title = `${getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.realtime', interaction.guild.name)}`;
+            embed_title = `${getLocaleTranslation(interaction.jikan_server_locale, 'leaderboard_titles.realtime', server_lb_name ? server_lb_name : interaction.guild.name)}`;
        }
 
         pagination

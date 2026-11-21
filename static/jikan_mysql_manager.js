@@ -68,6 +68,23 @@ class JikanMySQLDatabase {
         }
     }
 
+    static async checkIfUserIsHidden(id) {
+        try {
+            const [rows] = await this.#pool.query(
+                `select is_hidden from JikanUser where user_id = ?`,
+                [id]
+            );
+
+            telemetry.log("check_if_user_is_hidden", "_calls");
+
+            return rows[0]?.is_hidden === 1;
+
+        } catch(e) {
+            telemetry.log("check_if_user_is_hidden", "_errors");
+            throw new JikanDBError(e.message);
+        }
+    }
+
     /**
      * Get all user time
      * @param {string} user_id - user id
@@ -150,6 +167,32 @@ class JikanMySQLDatabase {
         }
     }
 
+    /**
+     * Get IDs of users that are hidden from leaderboard.
+     *
+     * @param {string[]} user_ids - User ID
+     * @returns {Set<string>} A set containing hidden user IDs.
+     */
+    static async getHiddenUsers(user_ids) {
+        if (!user_ids.length) return new Set();
+
+        try {
+            const [rows] = await this.#pool.query(
+                `select user_id from JikanUser
+                where user_id in (?) and is_hidden = 1`,
+                [user_ids]
+            );
+
+            telemetry.log("get_hidden_users", "_calls");
+
+            return new Set(rows.map(row => row.user_id));
+
+        } catch(e) {
+            telemetry.log("get_hidden_users", "_errors");
+            throw new JikanDBError(e.message);
+        }
+    }
+
     static async getGuildSettings(id) {
         try {
             const [rows] = await this.#pool.query(
@@ -186,14 +229,24 @@ class JikanMySQLDatabase {
             let params = [];
 
             if (user_selected_type === "GLOBAL") {
-                query = `select user_id, max(user_name) as user_name, sum(vc_time) as vc_time
-                    from JikanGuildLeaderboard
-                    group by user_id
+                query = `select 
+                        lb.user_id,
+                        max(lb.user_name) as user_name,
+                        sum(lb.vc_time) as vc_time,
+                        max(u.is_hidden) as is_hidden
+                    from JikanGuildLeaderboard lb
+                    left join JikanUser u on u.user_id = lb.user_id
+                    group by lb.user_id
                     order by vc_time ${obj.order}`;
             } else {
-                query = `select * from JikanGuildLeaderboard 
-                    where server_id = ? 
+                query = `select 
+                        lb.*,
+                        u.is_hidden
+                    from JikanGuildLeaderboard lb
+                    left join JikanUser u on u.user_id = lb.user_id
+                    where lb.server_id = ?
                     order by ${obj.value} ${obj.order}`;
+
                 params.push(obj.guild_id);
             }
 
@@ -257,6 +310,25 @@ class JikanMySQLDatabase {
             telemetry.log('set_guild_setting', '_calls');
         } catch(e) {
             telemetry.log('set_guild_setting', '_errors');
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    static async setUserHiddenStatus(id, username, is_hidden) {
+        try {
+            await this.#pool.query(
+                `insert into JikanUser (user_id, user_name, is_hidden)
+                values (?, ?, ?)
+                on duplicate key update
+                    user_name = values(user_name),
+                    is_hidden = values(is_hidden)`,
+                [id, username, is_hidden]
+            );
+
+            telemetry.log("set_user_hidden_status", "_calls");
+
+        } catch(e) {
+            telemetry.log("set_user_hidden_status", "_errors");
             throw new JikanDBError(e.message);
         }
     }
