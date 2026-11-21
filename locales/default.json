@@ -187,7 +187,10 @@
 				"responses": {
 					"success": "Successfully set the logging channel to: {0}",
 					"reset": "Removed log channel."
-				}
+				},
+				"create_reason": "Set {0} as logging channel.",
+				"create_view_noperms": "I don't have permissions to view the channel.",
+				"create_webhook_noperms": "I don't have permision to manage webhooks in this channel."
 			},
 			"JIKAN_MODAL_USER_LB_HIDE": {
 				"title": "Hide from leaderboards",
@@ -212,6 +215,7 @@
 		"vc_time": "VC Time",
 		"user_id": "User ID",
 		"user_name": "Username",
+		"user": "User",
 
 		"asc": "Ascending",
 		"desc": "Descending",
@@ -219,6 +223,8 @@
 		"realtime": "Realtime",
 		"global": "Global",
 		"local": "Local",
+
+		"channel": "Channel",
 
 		"status": "Status",
 		"error":  "Error",
@@ -235,6 +241,7 @@
 		"local": "{0} | Local VC Leaderboard"
 	},
 	"system": {
+		"config_error": "An error has occured while configuring.",
 		"banned_message": "The user/server is not allowed to use Jikan.",
 		"button_not_implemented": "This button is not working. Stop clicking this",
 		"command_error": "An error has occured while trying to execute this command.",
@@ -247,5 +254,19 @@
 		"minute": "m",
 		"second": "s",
 		"year": "y"
+	},
+	"webhook": {
+		"actions": {
+			"join": "Join",
+			"move": "Move",
+			"leave": "Leave"
+		},
+		"title": "Voice Channel {0}",
+		"embed": {
+			"channel": {
+				"from": "From",
+				"to": "To"
+			}
+		}
 	}
 }

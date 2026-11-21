@@ -177,28 +177,34 @@ module.exports.consoleColor = (string, color = 'white') => {
 }
 
 module.exports.buildConfigDashboard = (interaction) => {
+    const locale = JikanCache.getServerLangCache(interaction.guildId)
+
     const embed = new EmbedBuilder()
-    .setTitle(this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.title'))
+    .setTitle(this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.title'))
     .setDescription(`
-        ${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.description')}
-        ${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.main.note')}
+        ${this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.description')}
+        ${this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.note')}
     `)
     .addFields(
         {
-            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_language'),
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_language'),
             value: `${lang_icons[JikanCache.getServerLangCache(interaction.guildId)]} (${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.translated_by', this.getLocaleTranslation(interaction.jikan_server_locale, 'metadata.translator'))})`
         },
         {
-            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_lbname'),
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_lbname'),
             value: JikanCache.getServerLBNameCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
         },
         {
-            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_logchannel'),
-            value: channelMention(JikanCache.getServerLogChannelCache(interaction.guildId)) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_logchannel'),
+            value: JikanCache.getServerLogChannelCache(interaction.guildId) ?
+            channelMention(JikanCache.getServerLogChannelCache(interaction.guildId)) :
+            this.getLocaleTranslation(locale, 'common.none')
         },
         {
-            name: this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.fields.current_ignoredrole'),
-            value: roleMention(JikanCache.getServerIgnoredRoleCache(interaction.guildId)) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_ignoredrole'),
+            value: JikanCache.getServerIgnoredRoleCache(interaction.guildId) ?
+            roleMention(JikanCache.getServerIgnoredRoleCache(interaction.guildId)) : 
+            this.getLocaleTranslation(locale, 'common.none')
         }
     )
 

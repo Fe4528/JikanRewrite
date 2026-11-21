@@ -1,21 +1,25 @@
+
 /*
 For anything cache related
 Excluding JikanTempTime
 
-
 Notes: The log channel ID is only there to show what channel
-the admin has set for sending vc join/leave logs
+the admin has set for sending VC join/leave logs.
 */
 
 class JikanCache {
     static #banlist_cache = new Set();
+
     static #server_ignoredrole_cache = new Map();
     static #server_lb_name_cache = new Map();
     static #server_locale_cache = new Map();
     static #server_logchannel_cache = new Map();
 
+    static #server_webhook_url_cache = new Map();
+    static #server_webhook_cache = new Map();
+
     /**
-     * Add ID in ban list cache
+     * Add ID to ban list cache
      * @param {string} id
      */
     static addBanID(id) {
@@ -23,32 +27,16 @@ class JikanCache {
     }
 
     /**
-     * Remove ID from ban list cache
+     * Set or overwrite log channel cache
      * @param {string} id
+     * @param {string} channel
      */
-    static removeBanID(id) {
-        this.#banlist_cache.delete(id);
+    static addOrSetServerLogChannelCache(id, channel) {
+        this.#server_logchannel_cache.set(id, channel);
     }
 
     /**
-     * Replace ban list cache with an iterable of IDs
-     * @param {Iterable<string>} ids
-     */
-    static setBanListCache(ids = []) {
-        this.#banlist_cache = new Set(ids);
-    }
-
-    /**
-     * Check if ID exists in ban list cache
-     * @param {string} id
-     * @returns {boolean}
-     */
-    static isBanIDExist(id) {
-        return this.#banlist_cache.has(id);
-    }
-
-    /**
-     * Set the ignored role cache for a guild
+     * Set or overwrite ignored role cache
      * @param {string} id
      * @param {string} role_id
      */
@@ -57,29 +45,41 @@ class JikanCache {
     }
 
     /**
-     * Get the ignored role ID in cache for a guild
+     * Set or overwrite server leaderboard name cache
      * @param {string} id
-     * @returns {string | undefined}
+     * @param {string} str
      */
-    static getServerIgnoredRoleCache(id) {
-        return this.#server_ignoredrole_cache.get(id);
+    static addOrSetServerLBNameCache(id, str) {
+        this.#server_lb_name_cache.set(id, str);
     }
 
     /**
-     * Remove the ignored role cache for a guild
+     * Set or overwrite server locale cache
      * @param {string} id
+     * @param {string} locale
      */
-    static removeServerIgnoredRoleCache(id) {
-        this.#server_ignoredrole_cache.delete(id);
+    static addOrSetServerLangCache(id, locale) {
+        this.#server_locale_cache.set(id, locale);
     }
 
     /**
-     * Set the log channel cache
+     * Set or overwrite webhook object cache
      * @param {string} id
-     * @param {string} channel
+     * @param {import('discord.js').WebhookClient} webhook
      */
-    static addOrSetLogChannelCache(id, channel) {
-        this.#server_logchannel_cache.set(id, channel);
+    static addOrSetServerWebhookObject(id, webhook) {
+        this.#server_webhook_cache.set(id, webhook);
+    }
+
+    /**
+     * Set or overwrite webhook URL cache
+     * Invalidates the cached WebhookClient when the URL changes
+     * @param {string} id
+     * @param {string} url
+     */
+    static addOrSetServerWebhookURL(id, url) {
+        this.#server_webhook_url_cache.set(id, url);
+        this.#server_webhook_cache.delete(id);
     }
 
     /**
@@ -92,20 +92,12 @@ class JikanCache {
     }
 
     /**
-     * Remove the log channel cache
+     * Get the server ignored role ID in cache
      * @param {string} id
+     * @returns {string | undefined}
      */
-    static removeServerLogChannelCache(id) {
-        this.#server_logchannel_cache.delete(id);
-    }
-
-    /**
-     * Set the server leaderboard name cache
-     * @param {string} id
-     * @param {string} str
-     */
-    static addOrSetServerLBNameCache(id, str) {
-        this.#server_lb_name_cache.set(id, str);
+    static getServerIgnoredRoleCache(id) {
+        return this.#server_ignoredrole_cache.get(id);
     }
 
     /**
@@ -118,24 +110,7 @@ class JikanCache {
     }
 
     /**
-     * Remove the server leaderboard name cache
-     * @param {string} id
-     */
-    static removeServerLBNameCache(id) {
-        this.#server_lb_name_cache.delete(id);
-    }
-
-    /**
-     * Add or set a server language cache
-     * @param {string} id
-     * @param {string} locale
-     */
-    static addOrSetServerLangCache(id, locale) {
-        this.#server_locale_cache.set(id, locale);
-    }
-
-    /**
-     * Get the server language in cache
+     * Get the server locale in cache
      * @param {string} id
      * @returns {string | undefined}
      */
@@ -144,29 +119,58 @@ class JikanCache {
     }
 
     /**
-     * Remove the server language cache
+     * Get the cached WebhookClient
      * @param {string} id
+     * @returns {import('discord.js').WebhookClient | undefined}
      */
-    static removeServerLangCache(id) {
-        this.#server_locale_cache.delete(id);
+    static getServerWebhookObject(id) {
+        return this.#server_webhook_cache.get(id);
     }
 
     /**
-     * Check if guild exists in cache
+     * Get the webhook URL in cache
+     * @param {string} id
+     * @returns {string | undefined}
+     */
+    static getServerWebhookURL(id) {
+        return this.#server_webhook_url_cache.get(id);
+    }
+
+    /**
+     * Check if guild has any cached configuration
      * @param {string} id
      * @returns {boolean}
      */
     static hasGuild(id) {
         return (
-            this.#server_locale_cache.has(id) ||
-            this.#server_lb_name_cache.has(id) ||
             this.#server_ignoredrole_cache.has(id) ||
-            this.#server_logchannel_cache.has(id)
+            this.#server_lb_name_cache.has(id) ||
+            this.#server_locale_cache.has(id) ||
+            this.#server_logchannel_cache.has(id) ||
+            this.#server_webhook_url_cache.has(id) ||
+            this.#server_webhook_cache.has(id)
         );
     }
 
     /**
-     * Remove all cached config entries for a guild
+     * Check if ID exists in ban list cache
+     * @param {string} id
+     * @returns {boolean}
+     */
+    static isBanIDExist(id) {
+        return this.#banlist_cache.has(id);
+    }
+
+    /**
+     * Remove ID from ban list cache
+     * @param {string} id
+     */
+    static removeBanID(id) {
+        this.#banlist_cache.delete(id);
+    }
+
+    /**
+     * Remove all cached configuration entries for a guild
      * @param {string} id
      */
     static removeGuildConfigCache(id) {
@@ -174,36 +178,132 @@ class JikanCache {
         this.#server_lb_name_cache.delete(id);
         this.#server_locale_cache.delete(id);
         this.#server_logchannel_cache.delete(id);
+        this.#server_webhook_url_cache.delete(id);
+        this.#server_webhook_cache.delete(id);
     }
 
     /**
-     * Set or overwrite cached guild settings
+     * Remove the log channel cache
      * @param {string} id
-     * @param {{ ignored_role?: string | null, lb_name?: string | null, locale?: string | null, log_channel?: string | null }} s
+     */
+    static removeServerLogChannelCache(id) {
+        this.#server_logchannel_cache.delete(id);
+    }
+
+    /**
+     * Remove the server ignored role cache
+     * @param {string} id
+     */
+    static removeServerIgnoredRoleCache(id) {
+        this.#server_ignoredrole_cache.delete(id);
+    }
+
+    /**
+     * Remove the server leaderboard name cache
+     * @param {string} id
+     */
+    static removeServerLBNameCache(id) {
+        this.#server_lb_name_cache.delete(id);
+    }
+
+    /**
+     * Remove the server locale cache
+     * @param {string} id
+     */
+    static removeServerLangeCache(id) {
+        this.#server_locale_cache.delete(id);
+    }
+
+    /**
+     * Remove the cached WebhookClient
+     * @param {string} id
+     */
+    static removeServerWebhookObject(id) {
+        this.#server_webhook_cache.delete(id);
+    }
+
+    /**
+     * Remove the webhook URL and its cached WebhookClient
+     * @param {string} id
+     */
+    static removeServerWebhookURL(id) {
+        this.#server_webhook_url_cache.delete(id);
+        this.#server_webhook_cache.delete(id);
+    }
+
+    /**
+     * Replace ban list cache with an iterable of IDs
+     * @param {Iterable<string>} ids
+     */
+    static setBanListCache(ids = []) {
+        this.#banlist_cache = new Set(ids);
+    }
+
+    /**
+     * Set or overwrite all cached guild settings or a specific one.
+     *
+     * @param {string} id
+     * @param {{
+     *   ignored_role?: string | null,
+     *   lb_name?: string | null,
+     *   locale?: string | null,
+     *   log_channel?: string | null,
+     *   webhook_url?: string | null,
+     *   webhook_object?: import('discord.js').WebhookClient | null
+     * }} s
      */
     static setGuildSettings(id, s = {}) {
-        if (s.ignored_role != null) {
-            this.#server_ignoredrole_cache.set(id, s.ignored_role);
-        } else {
-            this.#server_ignoredrole_cache.delete(id);
+        if (Object.hasOwn(s, 'ignored_role')) {
+            if (s.ignored_role === null) {
+                this.#server_ignoredrole_cache.delete(id);
+            } else if (s.ignored_role !== undefined) {
+                this.#server_ignoredrole_cache.set(id, s.ignored_role);
+            }
         }
 
-        if (s.lb_name != null) {
-            this.#server_lb_name_cache.set(id, s.lb_name);
-        } else {
-            this.#server_lb_name_cache.delete(id);
+        if (Object.hasOwn(s, 'lb_name')) {
+            if (s.lb_name === null) {
+                this.#server_lb_name_cache.delete(id);
+            } else if (s.lb_name !== undefined) {
+                this.#server_lb_name_cache.set(id, s.lb_name);
+            }
         }
 
-        if (s.locale != null) {
-            this.#server_locale_cache.set(id, s.locale);
-        } else {
-            this.#server_locale_cache.delete(id);
+        if (Object.hasOwn(s, 'locale')) {
+            if (s.locale === null) {
+                this.#server_locale_cache.delete(id);
+            } else if (s.locale !== undefined) {
+                this.#server_locale_cache.set(id, s.locale);
+            }
         }
 
-        if (s.log_channel != null) {
-            this.#server_logchannel_cache.set(id, s.log_channel);
-        } else {
-            this.#server_logchannel_cache.delete(id);
+        if (Object.hasOwn(s, 'log_channel')) {
+            if (s.log_channel === null) {
+                this.#server_logchannel_cache.delete(id);
+            } else if (s.log_channel !== undefined) {
+                this.#server_logchannel_cache.set(id, s.log_channel);
+            }
+        }
+
+        if (Object.hasOwn(s, 'webhook_url')) {
+            if (s.webhook_url === null) {
+                this.#server_webhook_url_cache.delete(id);
+                this.#server_webhook_cache.delete(id);
+            } else if (s.webhook_url !== undefined) {
+                this.#server_webhook_url_cache.set(id, s.webhook_url);
+
+                if (!Object.hasOwn(s, 'webhook_object')) {
+                    this.#server_webhook_cache.delete(id);
+                }
+            }
+        }
+
+        if (Object.hasOwn(s, 'webhook_object')) {
+            if (s.webhook_object === null) {
+                this.#server_webhook_cache.delete(id);
+            } else if (s.webhook_object !== undefined) {
+                this.#server_webhook_cache.set(id, s.webhook_object);
+            }
         }
     }
 }

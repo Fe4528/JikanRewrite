@@ -196,7 +196,7 @@ class JikanMySQLDatabase {
     static async getGuildSettings(id) {
         try {
             const [rows] = await this.#pool.query(
-                `select server_locale, leaderboard_name, log_channel, ignored_role 
+                `select server_locale, leaderboard_name, log_channel, ignored_role, webhook_url 
                 from JikanGuildSettings where server_id = ?`,
                 [id]
             );
@@ -284,7 +284,7 @@ class JikanMySQLDatabase {
     /**
      * Sets a single guild configuration setting
      * @param {string} id - Server ID.
-     * @param {'server_locale'|'leaderboard_name'|'log_channel'|'ignored_role'} setting - Setting to update
+     * @param {'server_locale'|'leaderboard_name'|'log_channel'|'ignored_role'|'webhook_url'} setting - Setting to update
      * @param {string|null} value - New value for the setting
      */
     static async setGuildSetting(id, setting, value) {
@@ -292,19 +292,36 @@ class JikanMySQLDatabase {
             'server_locale',
             'leaderboard_name',
             'log_channel',
-            'ignored_role'
+            'ignored_role',
+            'webhook_url'
         ];
 
-        if (!allowedSettings.includes(setting)) {
-            throw new JikanDBError(`Invalid guild setting: ${setting}`);
+        const settings = typeof setting === 'string'
+            ? { [setting]: value }
+            : setting;
+
+        const entries = Object.entries(settings);
+
+        if (!entries.length) return;
+
+        for (const [key] of entries) {
+            if (!allowedSettings.includes(key)) {
+                throw new JikanDBError(`Invalid guild setting: ${key}`);
+            }
         }
 
         try {
-            const [result] = await this.#pool.query(
-                `insert into JikanGuildSettings (server_id, ${setting})
-                values (?, ?)
-                on duplicate key update ${setting} = values(${setting})`,
-                [id, value]
+            const columns = entries.map(([key]) => key);
+            const values = entries.map(([, value]) => value);
+
+            const placeholders = columns.map(() => '?').join(', ');
+            const updates = columns.map(key => `${key} = values(${key})`).join(', ');
+
+            await this.#pool.query(
+                `insert into JikanGuildSettings (server_id, ${columns.join(', ')})
+                values (?, ${placeholders})
+                on duplicate key update ${updates}`,
+                [id, ...values]
             );
 
             telemetry.log('set_guild_setting', '_calls');
@@ -345,9 +362,14 @@ class JikanMySQLDatabase {
      */
     static async updateUserTime(params) {
         try {
-            if (!params.id || !params.user_name || !params.guild_id) {
-                console.log("One or more param is missing");
-                return;
+            if (
+                !params.id ||
+                !params.user_name ||
+                !params.guild_id ||
+                !Number.isSafeInteger(params.current_time) ||
+                params.current_time <= 0
+            ) {
+                throw new JikanDBError("Invalid updateUserTime parameters");
             }
 
             const query = `
@@ -356,7 +378,7 @@ class JikanMySQLDatabase {
                 on duplicate key update
                     vc_time = vc_time + ?,
                     user_name = ?
-                `;
+            `;
 
             await this.#pool.query(query, [
                 params.id,
@@ -368,9 +390,11 @@ class JikanMySQLDatabase {
             ]);
 
             telemetry.log("update_user_time", "_calls");
-        }
-        catch (e) {
+
+        } catch (e) {
             telemetry.log("update_user_time", "_errors");
+
+            if (e instanceof JikanDBError) throw e;
             throw new JikanDBError(e.message);
         }
     }

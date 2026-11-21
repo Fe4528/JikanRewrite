@@ -88,11 +88,14 @@ async function ensure_guild_cached(guild_id) {
                 row = {};
             }
 
+            //console.log(row)
+
             JikanCache.setGuildSettings(guild_id, {
                 locale: row.server_locale || 'en-US',
                 lb_name: row.leaderboard_name ?? null,
                 log_channel: row.log_channel ?? null,
-                ignored_role: row.ignored_role ?? null
+                ignored_role: row.ignored_role ?? null,
+                webhook_url: row.webhook_url ?? null
             });
         })().finally(() => loading.delete(guild_id));
 

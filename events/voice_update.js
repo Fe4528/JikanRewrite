@@ -1,25 +1,35 @@
+
 const { JikanDBError, ms_convert, consoleColor } = require('#jikan/utils.js')
 const JikanTempTime = require("#jikan/jikan_temptime.js")
 const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
-
+const JikanWebhookManager = require("#jikan/jikan_webhook.js")
+const JikanCache = require("#jikan/jikan_cache.js")
 //client has the database object
 
 module.exports.changeDetected = async (os, ns, client) => {
     const guild = ns.guild;
     const member = ns.member;
 
-    if (!os.member || !ns.member) {
-        console.log(consoleColor("Cannot find member.", "yellow"));
-        return;
-    }
-
     if (!guild) {
         console.log(consoleColor("Cannot find guild.", "yellow"));
         return;
     }
 
+    if (!member) {
+        console.log(consoleColor("Cannot find member.", "yellow"));
+        return;
+    }
+
+    const locale = JikanCache.getServerLangCache(guild.id)
+
     try {
         const server_temp = JikanTempTime.getServer(guild.id);
+
+        if (!server_temp) {
+            console.log(consoleColor(`Cannot find JikanTempTime for guild ${guild.id}.`, "yellow"));
+            return;
+        }
+
         if (ns.channel && !os.channel) {
             const date = Date;
             const user_temp_time = server_temp.get(member.id);
@@ -46,20 +56,22 @@ module.exports.changeDetected = async (os, ns, client) => {
                     vc_time: date.now()
                 });
 
+                await JikanWebhookManager.sendVCLog('join', member, locale, null, ns.channel)
+
                 console.log(`User %s SET time`, member.id);
             } else if (user_temp_time) {
                 // this block runs when user joined the channel and it detects that the user already has temp data
                 //
                 // happens when jikan is down while user left vc, so the user is still recorded in JikanTempTime<> Map
                 // and user joined vc after Jikan application is initialized and ready to record time
-                
+
                 console.log(consoleColor(`User ${member.id} already has record in JikanTempTime<${guild.id}, object {}>, removing entry`, "red"));
-                
+
                 JikanTempTime.removeUserInServerTemp({
                     guild_id: guild.id,
                     user_id: member.id
                 });
-                
+
                 console.log(consoleColor(`User ${member.id} entry deletion JikanTempTime<${guild.id}, object {}> Map DONE`, "red"));
 
                 return;
@@ -74,8 +86,10 @@ module.exports.changeDetected = async (os, ns, client) => {
             //
             // this block runs when it detects that the user swapped channels
 
+            await JikanWebhookManager.sendVCLog('move', member, locale, os.channel, ns.channel)
+
             console.log(`User %s moved to Channel %s`, member.id, ns.channel.id);
-        }   
+        }
         else if (!ns.channel && os.channel) {
             // left vc
             const date = Date;
@@ -86,7 +100,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 // if vc_time is undefined for some reason
 
                 // means temp time does not exist
-                // happens if user contains temp_data before user joins and user leaves channel
+                // happens if user contains temp_data before user joins and leaves channel
                 // but since we already deleted the entry earlier, temp_time in old_time variable is undefined
 
                 console.log(consoleColor(`User ${member.id} temp time does not exist, do nothing`, "red"));
@@ -95,30 +109,26 @@ module.exports.changeDetected = async (os, ns, client) => {
 
             const time_spent_after_leaving = date_now - old_time.vc_time;
 
-            console.log(time_spent_after_leaving, date_now);
-            if (time_spent_after_leaving == date_now) {
-                // means temp time is 0 and time spent is the same as the leave timestamp
-                // in other words, the user left vc without a record in JikanTempTime<> Map
-                // happens when user left vc while Jikan application is down or still initializing
+            if (time_spent_after_leaving <= 0) {
+                // means temp time is invalid
+                // this can happen if the recorded timestamp is incorrect
 
-                console.log(consoleColor(`User ${member.id} time spent in VC is same as today`, "red"));
+                console.log(consoleColor(`User ${member.id} has an invalid VC time record`, "red"));
 
                 JikanTempTime.removeUserInServerTemp({
                     guild_id: guild.id,
                     user_id: member.id
                 });
 
-                console.log(consoleColor(`User ${member.id} temp time record has been deleted in JikanTempTime<${guild.id}, object {}>`, "green"));
-
                 return;
             }
 
             // update global
-            await JikanMySQLDatabase.updateUserTime({ 
-                guild_id: guild.id, 
-                id: member.id, 
-                current_time: time_spent_after_leaving, 
-                user_name: member.user.username, 
+            await JikanMySQLDatabase.updateUserTime({
+                guild_id: guild.id,
+                id: member.id,
+                current_time: time_spent_after_leaving,
+                user_name: member.user.username,
             });
             console.log("User %s GLOBAL time has been updated", member.id);
 
@@ -128,17 +138,25 @@ module.exports.changeDetected = async (os, ns, client) => {
                 user_id: member.id
             });
 
+            await JikanWebhookManager.sendVCLog('leave', member, locale, os.channel, null)
+
             console.log("User %s TEMP time has been deleted", member.id);
 
             console.log("User %s left Channel %s", member.id, os.channel.id)
-            console.log("\nInfo for %s:\nUsername: \t%s\nLeave time: \t%s\nVC Time: \t%s [%s]\n", member.id, member.user.username, date(), ms_convert(time_spent_after_leaving), time_spent_after_leaving);
+            console.log("\nInfo for %s:\nUsername: \t%s\nLeave time: \t%s\nVC Time: \t%s [%s]\n",
+                member.id,
+                member.user.username,
+                date(),
+                ms_convert(time_spent_after_leaving),
+                time_spent_after_leaving
+            );
         }
     }
     catch (e) {
         if (e instanceof JikanDBError) {
             console.log(e);
         } else {
-            console.log(e.stack);
+            console.log(e.stack || e);
         }
     }
 }
