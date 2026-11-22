@@ -56,7 +56,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                     vc_time: date.now()
                 });
 
-                await JikanWebhookManager.sendVCLog('join', member, locale, null, ns.channel)
+                await JikanWebhookManager.sendVCLog('join', member, locale, null, null, ns.channel)
 
                 console.log(`User %s SET time`, member.id);
             } else if (user_temp_time) {
@@ -86,7 +86,7 @@ module.exports.changeDetected = async (os, ns, client) => {
             //
             // this block runs when it detects that the user swapped channels
 
-            await JikanWebhookManager.sendVCLog('move', member, locale, os.channel, ns.channel)
+            await JikanWebhookManager.sendVCLog('move', member, locale, null, os.channel, ns.channel)
 
             console.log(`User %s moved to Channel %s`, member.id, ns.channel.id);
         }
@@ -138,7 +138,7 @@ module.exports.changeDetected = async (os, ns, client) => {
                 user_id: member.id
             });
 
-            await JikanWebhookManager.sendVCLog('leave', member, locale, os.channel, null)
+            await JikanWebhookManager.sendVCLog('leave', member, locale, time_spent_after_leaving, os.channel, null)
 
             console.log("User %s TEMP time has been deleted", member.id);
 

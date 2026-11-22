@@ -11,7 +11,7 @@ function formatLeaderboardRow(user, ranking, selected_scope, selected_value, loc
         ? ms_convert(Date.now() - user.vc_time, locale)
         : ms_convert(user.vc_time, locale);
 
-    const display_name = user.is_hidden ? "Hidden User" : user.user_name;
+    const display_name = user.is_hidden ? getLocaleTranslation(locale, 'common.hidden_user') : user.user_name;
     const display_id = selected_value === "user_id" && !user.is_hidden
         ? `[${user.user_id}]`
         : '';
@@ -35,7 +35,7 @@ function getMyRankingString(lb_map, interaction, selected_scope) {
         ? ms_convert(Date.now() - data.vc_time, interaction.jikan_server_locale)
         : ms_convert(data.vc_time, interaction.jikan_server_locale);
 
-    const display_name = data.is_hidden ? "Hidden User" : interaction.user.username;
+    const display_name = data.is_hidden ? getLocaleTranslation(interaction.jikan_server_locale, 'common.hidden_user') : interaction.user.username;
 
     return `${rank}. ${display_name} - ${mytime}`;
 }

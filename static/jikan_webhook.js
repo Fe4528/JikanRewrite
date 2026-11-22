@@ -1,5 +1,5 @@
-const { WebhookClient, EmbedBuilder, userMention } = require('discord.js');
-const { getLocaleTranslation } = require('#jikan/utils.js');
+const { WebhookClient, EmbedBuilder, userMention, channelMention } = require('discord.js');
+const { getLocaleTranslation, ms_convert } = require('#jikan/utils.js');
 const JikanCache = require('#jikan/jikan_cache.js');
 
 const embedColors = {
@@ -26,7 +26,7 @@ class JikanWebhookManager {
      * Send a VC webhook log, will work if the server configured one.
      * @param {'join'|'move'|'leave'} type
      */
-    static async sendVCLog(type, member, locale, old_channel = null, new_channel = null) {
+    static async sendVCLog(type, member, locale, user_time = null, old_channel = null, new_channel = null) {
         try {
             const guild_id = member.guild.id;
 
@@ -52,13 +52,9 @@ class JikanWebhookManager {
             const channelString = getLocaleTranslation(locale, 'common.channel');
 
             const embed = new EmbedBuilder()
-                .setTitle(getLocaleTranslation(
-                    locale,
-                    'webhook.title',
-                    getVCStateType(type, locale)
-                ))
+                .setTitle(getLocaleTranslation(locale, 'webhook.title', getVCStateType(type, locale)))
                 .setColor(embedColors[type])
-                .setDescription(`${getLocaleTranslation(locale, 'common.user')} ${userMention(member.id)}`)
+                .setDescription(`${getLocaleTranslation(locale, 'common.user')}: ${userMention(member.id)}\n${member.user.username}`)
                 .setFooter({
                     text: `${getLocaleTranslation(locale, 'common.user_id')}: ${member.id}`
                 })
@@ -67,32 +63,40 @@ class JikanWebhookManager {
             if (type === 'join') {
                 if (!new_channel) return;
 
-                embed.addFields({
-                    name: channelString,
-                    value: new_channel.name
-                });
+                embed.addFields(
+                    {
+                        name: channelString,
+                        value: channelMention(new_channel.id)
+                    }
+                );
             } else if (type === 'move') {
                 if (!old_channel || !new_channel) return;
 
                 embed.addFields(
                     {
                         name: getLocaleTranslation(locale, 'webhook.embed.channel.from'),
-                        value: old_channel.name,
+                        value: channelMention(old_channel.id),
                         inline: true
                     },
                     {
                         name: getLocaleTranslation(locale, 'webhook.embed.channel.to'),
-                        value: new_channel.name,
+                        value: channelMention(new_channel.id),
                         inline: true
                     }
                 );
             } else if (type === 'leave') {
                 if (!old_channel) return;
 
-                embed.addFields({
-                    name: channelString,
-                    value: old_channel.name
-                });
+                embed.addFields(
+                    {
+                        name: channelString,
+                        value: channelMention(old_channel.id)
+                    },
+                    {
+                        name: getLocaleTranslation(locale, 'common.vc_time'),
+                        value: ms_convert(user_time)
+                    }
+                )
             }
 
             await webhook.send({

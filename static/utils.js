@@ -188,7 +188,7 @@ module.exports.buildConfigDashboard = (interaction) => {
     .addFields(
         {
             name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_language'),
-            value: `${lang_icons[JikanCache.getServerLangCache(interaction.guildId)]} (${this.getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.config.embeds.translated_by', this.getLocaleTranslation(interaction.jikan_server_locale, 'metadata.translator'))})`
+            value: `${lang_icons[locale]} (${this.getLocaleTranslation(locale, 'commands.public.config.embeds.translated_by', this.getLocaleTranslation(locale, 'metadata.translator'))})`
         },
         {
             name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_lbname'),
@@ -211,27 +211,27 @@ module.exports.buildConfigDashboard = (interaction) => {
     const lb_name_config = new ButtonBuilder()
     .setCustomId("JIKAN_BTN_LB_NAME_CONFIG")
     .setStyle(ButtonStyle.Secondary)
-    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
 
     const log_channel_config = new ButtonBuilder()
     .setCustomId("JIKAN_BTN_LOG_CHANNEL_CONFIG")
     .setStyle(ButtonStyle.Secondary)
-    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
 
     const ignored_role_config = new ButtonBuilder()
     .setCustomId('JIKAN_BTN_IGNORED_ROLE_CONFIG')
     .setStyle(ButtonStyle.Secondary)
-    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
 
     const botlang_config = new ButtonBuilder()
     .setCustomId("JIKAN_BTN_LOCALE_CONFIG")
     .setStyle(ButtonStyle.Secondary)
-    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_LOCALE_CONFIG'));
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LOCALE_CONFIG'));
 
     const resetButton = new ButtonBuilder()
     .setCustomId("JIKAN_BTN_RESETCFGVALUES")
     .setStyle(ButtonStyle.Danger)
-    .setLabel(this.getLocaleTranslation(interaction.jikan_server_locale, 'buttons.config.JIKAN_BTN_RESETCFGVALUES'));
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_RESETCFGVALUES'));
     
     const button_row1 = new ActionRowBuilder().addComponents(botlang_config, lb_name_config, log_channel_config);
     const button_row2 = new ActionRowBuilder().addComponents(ignored_role_config, resetButton);

@@ -51,7 +51,7 @@
 						},
 						"hardware": {
 							"name": "Useless Information",
-							"cpu_value": "CPU: {0}",
+							"cpu_model": "CPU: {0}",
 							"cpu_usage_value": "CPU Usage: {0}",
 							"os_value": "OS: {0}"
 						}
@@ -216,6 +216,11 @@
 		"user_id": "User ID",
 		"user_name": "Username",
 		"user": "User",
+		"hidden_user": "Hidden User",
+
+		"invite": "Invite",
+		"website": "Website",
+		"github": "GitHub",
 
 		"asc": "Ascending",
 		"desc": "Descending",
