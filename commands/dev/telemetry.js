@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder } = require('discord.js');
 const { code_block } = require('#jikan/utils.js');
 const telemetry = require('#jikan/telemetry.js');
 const path = require('path');
@@ -13,9 +13,9 @@ module.exports = {
         interaction.reply({
             content: code_block(tele_result),
             components: [
-                new discord.ActionRowBuilder()
+                new ActionRowBuilder()
                 .addComponents(
-                    new discord.ButtonBuilder()
+                    new ButtonBuilder()
                     .setLabel("Refresh")
                     .setCustomId("JIKAN_TELEMETRY_REFRESH")
                     .setStyle("Secondary")
