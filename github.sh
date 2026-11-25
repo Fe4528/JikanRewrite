@@ -1,32 +1,37 @@
 #!/bin/bash
 
+set -e
+
 GITHUB_USER="Fe4528"
 REPO_NAME="JikanRewrite"
 BRANCH="main"
+REPO_URL="https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
 
-cd "$(dirname "$0")" || exit
+cd "$(dirname "$0")" || exit 1
 
 if [ ! -d ".git" ]; then
     echo "No .git folder found; initializing..."
     git init
-    git remote add origin https://github.com/${GITHUB_USER}/${REPO_NAME}.git
-    git fetch origin "$BRANCH"
-    git checkout -f -b "$BRANCH" --track origin/"$BRANCH"
-else
-    echo "Git repo detected; checking for updates..."
-
-    PULL_OUTPUT=$(git pull origin "$BRANCH")
-    echo "$PULL_OUTPUT"
-
-    if [[ "$PULL_OUTPUT" == *"Already up to date."* ]]; then
-        echo "No new files found; already running latest code."
-    else
-        echo "New files detected and pulled"
-    fi
 fi
+
+if git remote get-url origin >/dev/null 2>&1; then
+    git remote set-url origin "$REPO_URL"
+else
+    git remote add origin "$REPO_URL"
+fi
+
+echo "Fetching latest changes from GitHub..."
+git fetch origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
+
+echo "Synchronizing local repository with origin/${BRANCH}..."
+git checkout -f -B "$BRANCH" "origin/$BRANCH"
+git reset --hard "origin/$BRANCH"
+
+echo "Repository successfully synchronized."
+echo "Current commit: $(git rev-parse --short HEAD)"
 
 echo "Wait 10 sec..."
 sleep 10
 
-echo "Start program index.js..."
+echo "Starting program index.js..."
 node index.js
