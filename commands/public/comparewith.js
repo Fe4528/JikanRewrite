@@ -39,7 +39,9 @@ module.exports = {
         const selected_scope = interaction.options.getString("scope") || 'local'
         const selected_user = interaction.options.getUser('user')
 
-        const embed = new EmbedBuilder()
+        const embed = new EmbedBuilder();
+
+        await interaction.deferReply();
 
         if (interaction.user.id == selected_user.id) {
             // comparing with yourself lol

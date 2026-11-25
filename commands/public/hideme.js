@@ -9,6 +9,8 @@ module.exports = {
     .setDescription(getLocaleTranslation('en-US', 'commands.public.hideme.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.public.hideme.description')),
     async run(client, interaction) {
+        await interaction.deferReply();
+        
         const userHiddenStatus = await JikanMySQLDatabase.checkIfUserIsHidden(interaction.user.id)
 
         const modal = new ModalBuilder()
