@@ -1,6 +1,6 @@
 const path = require('path');
 const chokidar = require('chokidar');
-const { consoleColor } = require('./static/utils.js');
+const { consoleColor } = require('#jikan/utils.js');
 
 const dirs = [
     './commands/dev',

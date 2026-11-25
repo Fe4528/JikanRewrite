@@ -1,8 +1,13 @@
-const { WebhookClient } = require("discord.js");
+const { WebhookClient, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, channelMention, roleMention } = require("discord.js");
+const JikanCache = require("#jikan/jikan_cache.js")
 const path = require("path");
 const webhook = new WebhookClient({
     url: process.env.DEVHOOK_URL
 })
+
+/**
+ * @typedef {import("#translation_key").TranslationKey} TranslationKey
+ */
 
 function load_locale(locale) {
     let locale_file;
@@ -38,6 +43,11 @@ const console_colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   white: '\x1b[37m',
+}
+
+const lang_icons = {
+    "en-US": ":flag_us:",
+    "ja": ":flag_jp:"
 }
 
 /**
@@ -101,7 +111,7 @@ module.exports.code_block = (txt) => {
  * @param {number} ms Milliseconds
  * @returns 
  */
-module.exports.ms_convert = (ms) => {
+module.exports.ms_convert = (ms, locale = "en-US") => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -116,13 +126,13 @@ module.exports.ms_convert = (ms) => {
     const final_seconds = parseFloat(remaining_seconds); 
 
     const duration = [];
-    if (years > 0) duration.push(`${years}y`);
-    if (remaining_days > 0) duration.push(`${remaining_days}d`);
-    if (remaining_hours > 0) duration.push(`${remaining_hours}h`);
-    if (remaining_minutes > 0) duration.push(`${remaining_minutes}m`);
+    if (years > 0) duration.push(`${years}${this.getLocaleTranslation(locale, 'time.year')}`);
+    if (remaining_days > 0) duration.push(`${remaining_days}${this.getLocaleTranslation(locale, 'time.day')}`);
+    if (remaining_hours > 0) duration.push(`${remaining_hours}${this.getLocaleTranslation(locale, 'time.hour')}`);
+    if (remaining_minutes > 0) duration.push(`${remaining_minutes}${this.getLocaleTranslation(locale, 'time.minute')}`);
     
     if (final_seconds > 0 || duration.length === 0) {
-        duration.push(`${final_seconds}s`);
+        duration.push(`${final_seconds}${this.getLocaleTranslation(locale, 'time.second')}`);
     }
 
     return duration.join(' ');
@@ -130,15 +140,17 @@ module.exports.ms_convert = (ms) => {
 
 /**
  * Get the locale translation for a given key.
- * You can just put any gibberish like "sdjakhfjkshfkkjshdf" to make it return the default locale (en-US)
+ * If language is not found, defaults to en-US
  * @param {object} interaction 
- * @param {string} key
+ * @param {TranslationKey} key
  * @param {'en-US' | 'ja'} locale
+ * @param {...any} vars
+ * @returns Translated string for locale
  */
 module.exports.getLocaleTranslation = function (locale, key, ...vars) {
     const data = load_locale(locale);
 
-    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? `${locale}.${key}`;
+    let text = key.split('.').reduce((acc, k) => acc?.[k], data) ?? "[Reserved String]";
 
     return text.replace(/\{(\d+)\}/g, (_, index) => {
         return vars[index] ?? `{${index}}`;
@@ -147,13 +159,12 @@ module.exports.getLocaleTranslation = function (locale, key, ...vars) {
 
 /**
  * Template for localization
- * @param {any} key
+ * @param {TranslationKey} key
  * @returns object
  */
 module.exports.localizationTemplate = (key) => ({
     'ja': module.exports.getLocaleTranslation('ja', key)
 })
-
 
 /**
  * Generates an ANSI escape code for the given string
@@ -163,4 +174,71 @@ module.exports.localizationTemplate = (key) => ({
  */
 module.exports.consoleColor = (string, color = 'white') => {
     return `${console_colors[color]}${string}${console_colors.default}`;
+}
+
+module.exports.buildConfigDashboard = (interaction) => {
+    const locale = JikanCache.getServerLangCache(interaction.guildId)
+
+    const embed = new EmbedBuilder()
+    .setTitle(this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.title'))
+    .setDescription(`
+        ${this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.description')}
+        ${this.getLocaleTranslation(locale, 'commands.public.config.embeds.main.note')}
+    `)
+    .addFields(
+        {
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_language'),
+            value: `${lang_icons[locale]} (${this.getLocaleTranslation(locale, 'commands.public.config.embeds.translated_by', this.getLocaleTranslation(locale, 'metadata.translator'))})`
+        },
+        {
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_lbname'),
+            value: JikanCache.getServerLBNameCache(interaction.guildId) || this.getLocaleTranslation(interaction.jikan_server_locale, 'common.none')
+        },
+        {
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_logchannel'),
+            value: JikanCache.getServerLogChannelCache(interaction.guildId) ?
+            channelMention(JikanCache.getServerLogChannelCache(interaction.guildId)) :
+            this.getLocaleTranslation(locale, 'common.none')
+        },
+        {
+            name: this.getLocaleTranslation(locale, 'commands.public.config.embeds.fields.current_ignoredrole'),
+            value: JikanCache.getServerIgnoredRoleCache(interaction.guildId) ?
+            roleMention(JikanCache.getServerIgnoredRoleCache(interaction.guildId)) : 
+            this.getLocaleTranslation(locale, 'common.none')
+        }
+    )
+
+    const lb_name_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LB_NAME_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LB_NAME_CONFIG'));
+
+    const log_channel_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LOG_CHANNEL_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LOG_CHANNEL_CONFIG'));
+
+    const ignored_role_config = new ButtonBuilder()
+    .setCustomId('JIKAN_BTN_IGNORED_ROLE_CONFIG')
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_IGNORED_ROLE_CONFIG'))
+
+    const botlang_config = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_LOCALE_CONFIG")
+    .setStyle(ButtonStyle.Secondary)
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_LOCALE_CONFIG'));
+
+    const resetButton = new ButtonBuilder()
+    .setCustomId("JIKAN_BTN_RESETCFGVALUES")
+    .setStyle(ButtonStyle.Danger)
+    .setLabel(this.getLocaleTranslation(locale, 'buttons.config.JIKAN_BTN_RESETCFGVALUES'));
+    
+    const button_row1 = new ActionRowBuilder().addComponents(botlang_config, lb_name_config, log_channel_config);
+    const button_row2 = new ActionRowBuilder().addComponents(ignored_role_config, resetButton);
+
+    return {
+        embed: embed,
+        row1: button_row1,
+        row2: button_row2
+    }
 }

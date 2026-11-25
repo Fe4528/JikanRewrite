@@ -1,4 +1,7 @@
 .env
+.vs
+.npm
+.cache
+config.json
 node_modules
 plans.txt
-.vs
