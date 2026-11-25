@@ -54,7 +54,9 @@ module.exports = {
         let response;
 
         try {
-            response = await interaction.channel.awaitMessageComponent({
+            const confirmation_message = await interaction.fetchReply();
+
+            response = await confirmation_message.awaitMessageComponent({
                 filter: i =>
                     i.user.id === user_id &&
                     ['reset_confirm', 'reset_cancel'].includes(i.customId),

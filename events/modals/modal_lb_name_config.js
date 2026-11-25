@@ -15,7 +15,7 @@ module.exports = {
             JikanCache.addOrSetServerLBNameCache(interaction.guildId, new_lb_name);
             await JikanMySQLDatabase.setGuildSetting(interaction.guildId, "leaderboard_name", new_lb_name);
         } else {
-            if (!JikanCache.getServerIgnoredRoleCache(interaction.guildId)) {
+            if (!JikanCache.getServerLBNameCache(interaction.guildId)) {
                 await interaction.followUp({
                     content: getLocaleTranslation(interaction.jikan_server_locale, 'common.config_cache_miss'),
                     flags: [MessageFlags.Ephemeral]
