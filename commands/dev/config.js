@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags, PermissionsBitField, InteractionContextType } = require('discord.js');
 const { getLocaleTranslation, localizationTemplate, code_block, buildConfigDashboard } = require('#jikan/utils.js');
 const JikanCache = require('#jikan/jikan_cache.js');
 const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
@@ -8,7 +8,8 @@ module.exports = {
     data: new SlashCommandBuilder()
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.config.description'))
-    .setDescriptionLocalizations(localizationTemplate('commands.public.config.description')),
+    .setDescriptionLocalizations(localizationTemplate('commands.public.config.description'))
+    .setContexts(InteractionContextType.Guild),
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
         await interaction.deferReply({

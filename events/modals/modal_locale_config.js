@@ -30,7 +30,7 @@ module.exports = {
             }
         } catch (error) {
             await interaction.followUp({
-                content: getLocaleTranslation(interaction.jikan_server_locale, 'common.database_error'),
+                content: getLocaleTranslation(interaction.jikan_server_locale, 'system.database_error'),
                 flags: [MessageFlags.Ephemeral]
             });
             return;

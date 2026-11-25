@@ -400,6 +400,53 @@ class JikanMySQLDatabase {
     }
 
     /**
+     * Reset a user's accumulated VC time
+     * @param {string} user_id
+     * @param {'LOCAL'|'GLOBAL'} scope
+     * @param {string} guild_id Required for LOCAL scope
+     * @returns {number} Number of leaderboard entries deleted
+     */
+    static async resetUserTime(user_id, scope, guild_id = null) {
+        try {
+            if (!user_id || !['LOCAL', 'GLOBAL'].includes(scope)) {
+                throw new JikanDBError("Invalid resetUserTime parameters");
+            }
+
+            let query;
+            let params;
+
+            if (scope === 'LOCAL') {
+                if (!guild_id) {
+                    throw new JikanDBError("Guild ID is required for LOCAL reset");
+                }
+
+                query = `
+                    delete from JikanGuildLeaderboard
+                    where user_id = ? and server_id = ?
+                `;
+                params = [user_id, guild_id];
+            } else {
+                query = `
+                    delete from JikanGuildLeaderboard
+                    where user_id = ?
+                `;
+                params = [user_id];
+            }
+
+            const [result] = await this.#pool.execute(query, params);
+
+            telemetry.log("reset_user_time", "_calls");
+
+            return result.affectedRows;
+        } catch (e) {
+            telemetry.log("reset_user_time", "_errors");
+
+            if (e instanceof JikanDBError) throw e;
+            throw new JikanDBError(e.message);
+        }
+    }
+
+    /**
      * Check if user exists globally
      * @param {string} user_id
      * @returns {boolean}

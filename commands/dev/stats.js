@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
 const { getLocaleTranslation, localizationTemplate, ms_convert, code_block } = require('#jikan/utils.js');
 const JikanTempTime = require('#jikan/jikan_temptime.js');
 const JikanCache = require('#jikan/jikan_cache.js')
@@ -15,11 +15,17 @@ module.exports = {
         .setName('user')
         .setDescription(getLocaleTranslation('en-US', 'commands.public.stats.options.user.description'))
         .setDescriptionLocalizations(localizationTemplate('commands.public.stats.options.user.description'))
-    ),
+    )
+    .setContexts(InteractionContextType.Guild),
     async run(client, interaction) {
         await interaction.deferReply();
 
         const target_user = interaction.options.getUser('user') || interaction.user
+
+        if (target_user.bot) {
+            interaction.editReply(getLocaleTranslation(interaction.jikan_server_locale, 'commands.public.stats.bot_user'));
+            return
+        }
 
         const user_data = await JikanMySQLDatabase.getAllUserTime(target_user.id, interaction.guildId);
         const user_temp_time = JikanTempTime.getServer(interaction.guildId).get(target_user.id);

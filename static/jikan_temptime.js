@@ -96,6 +96,12 @@ class JikanTempTime {
         user.delete(params.user_id);
     }
 
+    static removeUserEverywhere(user_id) {
+        for (const server of this.#servers.values()) {
+            server.delete(user_id);
+        }
+    }
+
     /**
      * Removes a server in the servers Map
      * @param {string} guild_id The guild ID

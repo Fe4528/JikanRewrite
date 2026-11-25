@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, InteractionContextType } = require('discord.js');
 const { getLocaleTranslation, localizationTemplate, code_block, ms_convert } = require('#jikan/utils.js');
 const JikanCache = require('#jikan/jikan_cache.js');
 const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
@@ -9,6 +9,7 @@ module.exports = {
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.comparewith.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.public.compare.description'))
+    .setContexts(InteractionContextType.Guild)
     .addUserOption(
         u => u
         .setName('user')

@@ -23,7 +23,7 @@ module.exports = {
             await interaction.editReply({
                 content: getLocaleTranslation(
                     interaction.jikan_server_locale,
-                    'common.database_error'
+                    'system.database_error'
                 )
             });
             return;

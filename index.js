@@ -162,6 +162,7 @@ client.on('interactionCreate', async interaction => {
         try {
             if (!interaction.customId.startsWith('JIKAN_BTN_')) return;
             // for stop clashing with pagination.djs buttons
+            // and other buttons in a collector
 
             const button = require.cache[buttons_map.get(interaction.customId)];
             
@@ -233,11 +234,11 @@ client.on('interactionCreate', async interaction => {
 
 client.on('clientReady', async ls => {
     try {
-        //await rest.put(Routes.applicationCommands(client.user.id), { body: [] });
-        //console.log('refreshed global')
+        await rest.put(Routes.applicationCommands(client.user.id), { body: commands_array });
+        console.log('Refreshed global')
 
         await rest.put(Routes.applicationGuildCommands(client.user.id, process.env.DEV_GUILD_ID), { body: dev_commands_array });
-        console.log('refreshed guild commands')
+        console.log('Refreshed guild commands')
 
         console.log("Ready to listen to events")
     } catch(err) {

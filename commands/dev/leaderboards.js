@@ -2,7 +2,7 @@ const { code_block, ms_convert, getLocaleTranslation, localizationTemplate, chun
 const JikanTempTime = require('#jikan/jikan_temptime.js');
 const JikanMySQLDatabase = require('#jikan/jikan_mysql_manager.js');
 const JikanCache = require('#jikan/jikan_cache.js');
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 const path = require('path');
 
@@ -108,7 +108,8 @@ module.exports = {
                 value: 'asc' 
             }
         )
-    ),
+    )
+    .setContexts(InteractionContextType.Guild),
     async run(client, interaction) {
         const selected_scope = interaction.options.getString('scope') || 'global';
         const selected_value = interaction.options.getString('value') || 'vc_time';

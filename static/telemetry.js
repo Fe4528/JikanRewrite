@@ -14,6 +14,7 @@ const helper_methods = /** @type {const} */([
     "get_server_lang",
     "get_user",
     "get_user_time_from",
+    "reset_user_time",
     "set_guild_setting",
     "set_user_hidden_status",
     "update_user_time",
