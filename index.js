@@ -267,13 +267,13 @@ client.on('voiceStateUpdate', async (os, ns) => {
 })
 
 client.on('guildCreate', async guild => {
-    JikanMySQLDatabase.createServerData(guild.id)
-})
+    JikanMySQLDatabase.createServerData(guild.id).catch(console.error);
+});
 
 client.on('guildDelete', async guild => {
     JikanTempTime.removeServer(guild.id);
-    JikanCache.removeGuildConfigCache(guild.id)
-})
+    JikanCache.removeGuildConfigCache(guild.id);
+});
 
 process.on('uncaughtException', (a) => {
     console.log(a);
@@ -290,9 +290,8 @@ process.on('uncaughtException', (a) => {
         const banlist = await JikanMySQLDatabase.getBanList();
         banlist.forEach(e => JikanCache.addBanID(e.id));
     
-        client.login(process.env.BOT_TOKEN).then(async () => {
-            console.log("Online");
-        })
+        await client.login(process.env.BOT_TOKEN)
+        console.log("Online");
     } catch (e) {
         console.log(consoleColor(`Startup failed: ${e.code ?? e.message}`, 'red'));
         process.exit(1);

@@ -9,6 +9,7 @@ module.exports = {
     .setName(path.basename(__filename).split('.')[0])
     .setDescription(getLocaleTranslation('en-US', 'commands.public.config.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.public.config.description'))
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
     .setContexts(InteractionContextType.Guild),
     permissions: [PermissionsBitField.Flags.ManageGuild],
     async run(client, interaction) {
