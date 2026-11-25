@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ModalBuilder, LabelBuilder, TextDisplayBuilder } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, LabelBuilder, TextDisplayBuilder, MessageFlags } = require('discord.js');
 const { getLocaleTranslation, localizationTemplate } = require('#jikan/utils.js');
 const path = require('path');
 const JikanMySQLDatabase = require("#jikan/jikan_mysql_manager.js");
@@ -9,8 +9,12 @@ module.exports = {
     .setDescription(getLocaleTranslation('en-US', 'commands.public.hideme.description'))
     .setDescriptionLocalizations(localizationTemplate('commands.public.hideme.description')),
     async run(client, interaction) {
-        await interaction.deferReply();
         
+        // await interaction.reply({
+        //     content: getLocaleTranslation(interaction.jikan_server_locale, 'common.please_wait'),
+        //     flags: [MessageFlags.Ephemeral]
+        // });
+
         const userHiddenStatus = await JikanMySQLDatabase.checkIfUserIsHidden(interaction.user.id)
 
         const modal = new ModalBuilder()
@@ -22,8 +26,16 @@ module.exports = {
         .setRadioGroupComponent((radioGroup) =>
 			radioGroup.setCustomId('hide_RADIOGRP')
             .addOptions([
-				{ label: getLocaleTranslation(interaction.jikan_server_locale, 'common.no'), value: 'hide_NO', default: !userHiddenStatus},
-				{ label: getLocaleTranslation(interaction.jikan_server_locale, 'common.yes'), value: 'hide_YES', default: userHiddenStatus},
+				{ 
+                    label: getLocaleTranslation(interaction.jikan_server_locale, 'common.no'),
+                    value: 'hide_NO', 
+                    default: !userHiddenStatus
+                },
+				{ 
+                    label: getLocaleTranslation(interaction.jikan_server_locale, 'common.yes'), 
+                    value: 'hide_YES',
+                    default: userHiddenStatus
+                },
 			])
             .setRequired(true)
 		)

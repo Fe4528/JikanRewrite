@@ -251,6 +251,8 @@
 		"error":  "Error",
 		"none": "None",
 
+		"please_wait": "Please wait",
+
 		"leave_blank_reset": "Leave blank to reset.",
 		"config_reset": "Configuration has been reset.",
 		"config_cache_miss": "There was nothing to reset."
